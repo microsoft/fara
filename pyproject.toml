@@ -1,0 +1,81 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fara"
+license = "MIT"
+dynamic = ["version"]
+description = "Fara"
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["agents", "browser-use", "multi-agent", "ai-assistant", "playwright", "web-automation"]
+authors = [
+    {name = "Microsoft Corporation", email = ""}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Internet :: WWW/HTTP :: Browsers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "playwright==1.51",
+    "openai",
+    "pillow",
+    "tenacity",
+    "pyyaml",
+    "jsonschema",
+    "browserbase",
+]
+
+[project.urls]
+Homepage = "https://github.com/microsoft/fara"
+Repository = "https://github.com/microsoft/fara"
+Issues = "https://github.com/microsoft/fara/issues"
+
+
+[project.scripts]
+fara-cli = "fara._cli:main"
+
+
+[tool.uv]
+dev-dependencies = [
+    "poethepoet",
+    "ruff==0.4.8",
+]
+
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.poe.tasks]
+fmt = "ruff format src"
+format.ref = "fmt src"
+lint = "ruff check src"
+check = ["fmt", "lint"]
+
+
+[tool.hatch.build.targets.wheel]
+include-package-data = true
+packages = ["src/fara"]
+
+[tool.hatch.version]
+path = "src/fara/version.py"
+
+[tool.hatch.build]
+include = [
+  "src/fara/**/*.py",
+  "src/fara/**/*.yaml",
+  "src/fara/**/*.json",
+]
+exclude = [
+  "**/__pycache__",
+  "**/.*.swp",
+]
+ignore-vcs = true 
