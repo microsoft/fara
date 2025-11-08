@@ -1,4 +1,4 @@
-Install:
+# Install:
 
 ```bash
 uv sync --all-extras
@@ -14,7 +14,29 @@ Then install playwright browsers:
 playwright install
 ``` 
 
-see `test_fara_agent.py` for an example of how to run the Fara agent.
+# Hosting model:
+1. If hosting a model whose weights you have downloaded locally on a GPU machine:
+`python az_vllm.py --model_url /path/to/model_checkpoints/ --device_id 0,1` which will default to port 5000. We prefer to host across two devices depending on how many gpus you have and how much memory they have: `--device_id 0,1`. 
+
+Then run `test_fara_agent.py` for an example of how to run the Fara agent. You will see a `client_config` which points to `"base_url": "http://localhost:5000/v1"` which is from above. 
 
 ```bash
-python test_fara_agent.py --task "Your task here" --start_page "https://www.example.com" [--headful] [--downloads_folder "/path/to/downloads"] [--save_screenshots] [--max_rounds 100]
+python test_fara_agent.py --task "how many pages does wikipedia have" --start_page "https://www.bing.com" [--headful] [--downloads_folder "/path/to/downloads"] [--save_screenshots] [--max_rounds 100] [--browserbase]
+```
+If you set `--browserbase`, you need to export environment variables for the api key and project id. 
+
+## Expected Output:
+You will see it output 
+
+```
+[fara_agent] Wikipedia currently has approximately 64,394,387 pages.
+<tool_call>
+{"name": "computer_use", "arguments": {"action": "terminate", "status": "success"}}
+</tool_call>
+
+[fara_agent] Wikipedia currently has approximately 64,394,387 pages.
+INFO:__main__:Closing browser...
+```
+
+# Inference at Scale:
+Todo, we have code for this, but if you write your own code, be careful not to overload more than 10 or so requests concurrently to a single VLLM endpoint because of weirdness like https://github.com/vllm-project/vllm/issues/19491

@@ -42,7 +42,7 @@ class BrowserBB:
         to_resize_viewport: bool = True,
         single_tab_mode: bool = True,
         animate_actions: bool = False,
-        use_browser_base: bool = True,
+        use_browser_base: bool = False,
         logger: Optional[logging.Logger] = None,
     ):
         self.headless = headless

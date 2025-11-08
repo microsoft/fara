@@ -1,6 +1,6 @@
 import asyncio
 import argparse
-from fara import LocalPlaywrightBrowser
+import os
 from fara import FaraAgent
 from fara.browser.browser_bb import BrowserBB
 import logging
@@ -16,7 +16,7 @@ async def run_fara_agent(
     downloads_folder: str = None,
     save_screenshots: bool = True,
     max_rounds: int = 100,
-    use_browser_base: bool = True,
+    use_browser_base: bool = False,
     retries_on_failure: int = 3,
 ):
     # Config for the local OpenAI-compatible server
@@ -98,8 +98,17 @@ async def main():
         default=100,
         help="Maximum number of rounds for the agent to run",
     )
+    parser.add_argument(
+        "--browserbase",
+        action="store_true",
+        help="Whether to use BrowserBase for browser management",
+    )
 
     args = parser.parse_args()
+
+    if args.browserbase:
+        assert os.environ.get("BROWSERBASE_API_KEY"), "BROWSERBASE_API_KEY environment variable must be set to use browserbase"
+        assert os.environ.get("BROWSERBASE_PROJECT_ID"), "BROWSERBASE_API_KEY and BROWSERBASE_PROJECT_ID environment variables must be set to use browserbase"
 
     await run_fara_agent(
         task=args.task,
@@ -108,6 +117,7 @@ async def main():
         downloads_folder=args.downloads_folder,
         save_screenshots=args.save_screenshots,
         max_rounds=args.max_rounds,
+        use_browser_base=args.browserbase,
     )
 
 
