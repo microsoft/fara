@@ -55,7 +55,8 @@ cd src/fara/webeval
 pip install -e .
 ```
 
-Then launch e.g. webvoyager evaluation
+## Run Evaluation
+Then launch e.g. webvoyager evaluation. This includes both sampling of trajectories from Fara-7B and scoring by the official llm-as-a-judge from webvoyager using gpt-4o. 
 
 ```bash
 python webvoyager.py --model_url ../../../../model_checkpoints/fara-7b/ --model_port 5000 --eval_oai_config ../endpoint_configs_gpt4o/dev/ --out_url /data/data/Fara/eval --device_id 0,1 --processes 1 --run_id 1 --max_rounds 100
