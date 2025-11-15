@@ -158,13 +158,14 @@ class WebVoyagerBenchmark(Benchmark):
         Evaluate how 'correct' the candidate answer is relative to the gold_answer.
         """
         if self.eval_method == "exact_match":
-            ground_truth = question_data.get("ground_truth", "")
-            candidate_answer = candidate.answer.final_answer
-            if not candidate_answer:
-                raise ValueError(
-                    "Candidate does not have an answer. It should be a dict with key 'answer'."
-                )
-            return gaia_evaluator(ground_truth, candidate_answer)
+            raise NotImplementedError("Exact match evaluation is not implemented.")
+            # ground_truth = question_data.get("ground_truth", "")
+            # candidate_answer = candidate.answer.final_answer
+            # if not candidate_answer:
+            #     raise ValueError(
+            #         "Candidate does not have an answer. It should be a dict with key 'answer'."
+            #     )
+            # return gaia_evaluator(ground_truth, candidate_answer)
         elif self.eval_method == "gpt_eval":
             verdict, gpt_response_text = asyncio.run(
                 self.gpt_evaluator_async(question_data, candidate.answer)
