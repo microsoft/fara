@@ -9,26 +9,13 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
-from vllm_facade import VLLM, Status
+from .vllm_facade import VLLM, Status
 
 try:
     from aztool.azcp import AzFolder, LocalFolder
 except ImportError:  # keep old behaviour when aztool missing
     AzFolder = None
     LocalFolder = None
-
-
-parser = argparse.ArgumentParser(description="Run vllm from azure blob model")
-parser.add_argument("--model_url", type=str, default=None, help="Model URL")
-parser.add_argument("--port", type=int, default=5000, help="port")
-parser.add_argument("--vllm_port", type=int, default=5001, help="vllm port")
-parser.add_argument("--device_id", type=str, default="0", help="device id")
-parser.add_argument("--max_n_images", type=int, default=3, help="Maximum number of images to process")
-parser.add_argument('--dtype', type=str, choices=['auto', 'half', 'float16', 'bfloat16', 'float', 'float32'], default='auto', help='Data type for VLLM model (default: auto)')
-parser.add_argument('--enforce_eager', action='store_true', help='Enforce eager execution mode for compatibility')
-parser.add_argument('--cache', action='store_true', help='Enable caching / local path serving instead of Azure mount')
-parser.add_argument('--cache_dir', type=str, default=None, help='Directory to cache downloaded models (default: ~/.cache/vllm_models)')
-args = parser.parse_args()
 
 
 def _is_azure_blob_url(model_path: str) -> bool:
@@ -124,7 +111,7 @@ class AzVllm:
             ### sometimes need to ls the directory or else huggingface will complain a config.json doesn't exist
             for root, dirs, files in os.walk(self.context.path):
                 for file in files:
-                    print(os.path.join(root, file))
+                    print(f"\t{os.path.join(root, file)}")
             self.vllm = VLLM(
                 model_path = self.context.path,
                 port = self.port,
@@ -140,7 +127,7 @@ class AzVllm:
             ### sometimes need to ls the directory or else huggingface will complain a config.json doesn't exist
             for root, dirs, files in os.walk(self.local_model_path):
                 for file in files:
-                    print(os.path.join(root, file))
+                    print(f"\t{os.path.join(root, file)}")
             self.vllm = VLLM(
                 model_path = self.local_model_path,
                 port = self.port,
@@ -230,5 +217,17 @@ async def get_model():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run vllm from azure blob model")
+    parser.add_argument("--model_url", type=str, default=None, help="Model URL")
+    parser.add_argument("--port", type=int, default=5000, help="port")
+    parser.add_argument("--vllm_port", type=int, default=5001, help="vllm port")
+    parser.add_argument("--device_id", type=str, default="0", help="device id")
+    parser.add_argument("--max_n_images", type=int, default=3, help="Maximum number of images to process")
+    parser.add_argument('--dtype', type=str, choices=['auto', 'half', 'float16', 'bfloat16', 'float', 'float32'], default='auto', help='Data type for VLLM model (default: auto)')
+    parser.add_argument('--enforce_eager', action='store_true', help='Enforce eager execution mode for compatibility')
+    parser.add_argument('--cache', action='store_true', help='Enable caching / local path serving instead of Azure mount')
+    parser.add_argument('--cache_dir', type=str, default=None, help='Directory to cache downloaded models (default: ~/.cache/vllm_models)')
+    args = parser.parse_args()
+
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=args.port)
