@@ -45,18 +45,21 @@ INFO:__main__:Closing browser...
 conda create --name fara_webeval python=3.12
 conda activate fara_webeval
 
+# install fara package if you haven't already from fara/
+pip install -e . 
+
 # first install autogen submodule
-cd ../../../autogen/python/packages
+git submodule update --init --recursive
+cd autogen/python/packages
 pip install -e autogen-core
 pip install -e autogen-ext
 
-# install webeval
+# cd back up and install webeval
 cd src/fara/webeval
 pip install -e .
 ```
 
-## Run Evaluation
-Then launch e.g. webvoyager evaluation. This includes both sampling of trajectories from Fara-7B and scoring by the official llm-as-a-judge from webvoyager using gpt-4o. 
+Then launch e.g. webvoyager evaluation, `cd src/fara/webeval/scripts` and do:
 
 ```bash
 python webvoyager.py --model_url ../../../../model_checkpoints/fara-7b/ --model_port 5000 --eval_oai_config ../endpoint_configs_gpt4o/dev/ --out_url /data/data/Fara/eval --device_id 0,1 --processes 1 --run_id 1 --max_rounds 100
