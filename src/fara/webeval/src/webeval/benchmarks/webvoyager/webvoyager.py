@@ -7,7 +7,6 @@ from typing import List, Dict, Any
 from autogen_core.components.models import UserMessage, LLMMessage, ChatCompletionClient
 from autogen_core.components import Image as AGImage
 from ...benchmark import Benchmark
-from ..gaia.gaia import gaia_evaluator
 from ...eval_result import EvalResult
 from ...utils import download_file, load_jsonl, load_json
 from ...evaluators import compute_aggregate_metrics_gpt_evaluator, filter_no_answer_no_error, safe_mean, compute_refusal_metrics
