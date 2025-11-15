@@ -15,6 +15,14 @@ playwright install
 ``` 
 
 # Hosting model:
+
+## downloading model:
+We also released the model checkpoints as git-lfs files under model_checkpoints/
+
+`git lfs install`
+`git lfs pull`
+
+## VLLM
 1. If hosting a model whose weights you have downloaded locally on a GPU machine:
 `python az_vllm.py --model_url /path/to/model_checkpoints/ --device_id 0,1` which will default to port 5000. We prefer to host across two devices depending on how many gpus you have and how much memory they have: `--device_id 0,1`. 
 

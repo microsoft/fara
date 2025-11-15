@@ -1,6 +1,7 @@
 fara_screenshots/
 fara_downloads/
 .vscode
+logs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
