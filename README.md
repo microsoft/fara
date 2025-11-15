@@ -39,4 +39,26 @@ INFO:__main__:Closing browser...
 ```
 
 # Inference at Scale:
+
+## installation of webeval package
+```bash
+conda create --name fara_webeval python=3.12
+conda activate fara_webeval
+
+# first install autogen submodule
+cd ../../../autogen/python/packages
+pip install -e autogen-core
+pip install -e autogen-ext
+
+# install webeval
+cd src/fara/webeval
+pip install -e .
+```
+
+Then launch e.g. webvoyager evaluation
+
+```bash
+python webvoyager.py --model_url ../../../../model_checkpoints/fara-7b/ --model_port 5000 --eval_oai_config ../endpoint_configs_gpt4o/dev/ --out_url /data/data/Fara/eval --device_id 0,1 --processes 1 --run_id 1 --max_rounds 100
+```
+
 Todo, we have code for this, but if you write your own code, be careful not to overload more than 10 or so requests concurrently to a single VLLM endpoint because of weirdness like https://github.com/vllm-project/vllm/issues/19491
