@@ -65,6 +65,9 @@ pip install -e autogen-ext
 # cd back up and install webeval
 cd src/fara/webeval
 pip install -e .
+
+# install playwright if you haven't already
+playwright install
 ```
 
 Then launch e.g. webvoyager evaluation, `cd src/fara/webeval/scripts` and do:
@@ -73,4 +76,7 @@ Then launch e.g. webvoyager evaluation, `cd src/fara/webeval/scripts` and do:
 python webvoyager.py --model_url ../../../../model_checkpoints/fara-7b/ --model_port 5000 --eval_oai_config ../endpoint_configs_gpt4o/dev/ --out_url /data/data/Fara/eval --device_id 0,1 --processes 1 --run_id 1 --max_rounds 100
 ```
 
+Notes:
+
+You can also set `--browserbase`, but again you need to export environment variables for the api key and project id. 
 Be careful not to overload a single VLLM deployment with more than `--processes 10` or so requests concurrently because of weirdness like https://github.com/vllm-project/vllm/issues/19491
