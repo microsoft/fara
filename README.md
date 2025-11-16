@@ -80,3 +80,19 @@ Notes:
 
 You can also set `--browserbase`, but again you need to export environment variables for the api key and project id. 
 Be careful not to overload a single VLLM deployment with more than `--processes 10` or so requests concurrently because of weirdness like https://github.com/vllm-project/vllm/issues/19491
+
+## Analyze Eval Run
+Beneath the `--out_url` there will be an Eval folder like `/runs/WebSurfer-fara-100-max_n_images-3/fara-7b/<your_username>/WebVoyager_WebVoyager_data_08312025.jsonl/<run_id>` based on unique properties like `--run_id`, version of webvoyager data found in `webeval/data/webvoyager`, etc. 
+
+After you ran the above `python webvoyager.py` command, you can enter that Eval folder into the `webeval/scripts/analyze_eval_results/analyze.ipynb` script and it will print out diagnostics of which tasks were aborted mid-trajectory and why, as well as the average score across non-aborted trajectories. 
+
+A trajectory is aborted if and only if an error was raised during trajectory sampling. Trajectories that finished with a final terminate() call or those that exceeded the step budget are not considered aborted (though they may still receive a score of 0 and considered failures). Aborted trajectories are removed from this script's average computation. 
+
+If you see lots of aborted trajectories, you should re-run the webvoyager.py script again (it will skip tasks that were not aborted, but only if you refer to the same run_id, username, etc). 
+
+### Structure of Eval Folders:
+The Eval folder is unique to the model, dataset, username who ran the command, and run_id. The folder contains `gpt_eval` and `traj` subdirectories. The latter contains another subdir for each task ID in webvoyager dataset, which itself contains 
+- final_answer.json e.g. `Amazon--1_final_answer.json`. If you see `<no_answer>` it means either the trajectory was aborted, or the step budget was exceeded without terminate(). 
+- `scores` containing the llm-as-a-judge score file
+- `web_surfer.log` which contains a history of all the actions and errors 
+- all the `screenshot_X.png` captured immediately before each action X. 
