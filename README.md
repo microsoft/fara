@@ -46,7 +46,7 @@ You will see it output
 INFO:__main__:Closing browser...
 ```
 
-# Benchmark Evaluation and Inference at Scale:
+# Inference at Scale:
 
 ## installation of webeval package
 ```bash
