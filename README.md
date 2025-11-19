@@ -70,15 +70,24 @@ pip install -e .
 playwright install
 ```
 
-Then launch e.g. webvoyager evaluation, `cd src/fara/webeval/scripts` and do:
+Then launch e.g. webvoyager evaluation, `cd src/fara/webeval/scripts` and do one of two options:
 
+Option 1: Host the model yourself on a gpu machine with VLLM:
 ```bash
 python webvoyager.py --model_url ../../../../model_checkpoints/fara-7b/ --model_port 5000 --eval_oai_config ../endpoint_configs_gpt4o/dev/ --out_url /data/data/Fara/eval --device_id 0,1 --processes 1 --run_id 1 --max_rounds 100
 ```
 
+Option 2: deploy [Fara-7B on one or more Foundry endpoint(s)](https://ai.azure.com/explore/models/Fara-7B/version/2/registry/azureml-msr):
+Once you've deployed them on foundry, take note of each endpoint's url and key, and place them into separate jsons under `endpoint_configs/`. The point the main script to those via the `--model_endpoint` field:
+```bash
+python webvoyager.py --model_endpoint ../../../../endpoint_configs/ --eval_oai_config ../endpoint_configs_gpt4o/dev/ --out_url /data/data/Fara/eval --processes 1 --run_id 1_endpoint --max_rounds 100
+```
+
 Notes:
 
-You can also set `--browserbase`, but again you need to export environment variables for the api key and project id. 
+We use the same llm-as-a-judge prompts and model (gpt-4o) that Webvoyager uses, which is why you need to specify `--eval_oai_config` argument. 
+
+You can also set `--browserbase` to handle browser session management, but again you need to export environment variables for the api key and project id. 
 Be careful not to overload a single VLLM deployment with more than `--processes 10` or so requests concurrently because of weirdness like https://github.com/vllm-project/vllm/issues/19491
 
 ## Analyze Eval Run

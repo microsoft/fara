@@ -82,7 +82,7 @@ def _prepare_cached_model(model_url: str) -> str:
     return str(model_path.resolve())
 
 class AzVllm:
-    def __init__(self, model_url, port, device_id, max_n_images, dtype='auto', enforce_eager=False):
+    def __init__(self, model_url, port, device_id, max_n_images, dtype='auto', enforce_eager=False, use_external_endpoint=False):
         self.model_az = None
         self.local_model_path = None
         self.vllm = None
@@ -91,7 +91,8 @@ class AzVllm:
         self.max_n_images = max_n_images
         self.dtype = dtype
         self.enforce_eager = enforce_eager
-        if model_url:
+        self.use_external_endpoint = use_external_endpoint
+        if model_url and not use_external_endpoint:
             # Check if model_url is an Azure blob URL or a local directory
             if _is_azure_blob_url(model_url):
                 self.model_az = AzFolder.from_uri(model_url)
@@ -104,6 +105,11 @@ class AzVllm:
             self.port = port
 
     def __enter__(self):
+        # No-op if using external endpoint
+        if self.use_external_endpoint:
+            print('Using external endpoint, skipping VLLM startup')
+            return self
+
         if self.model_az:
             self.context = self.model_az.mount()
             self.context.mount()

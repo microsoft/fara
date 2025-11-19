@@ -3,6 +3,7 @@ import os
 import json
 import asyncio
 import logging
+import random
 from typing import Dict, Any, List, Tuple, Union, Optional, Optional
 from webeval.basesystem import BaseSystem
 from webeval.trajectory import Trajectory, FinalAnswer
@@ -51,12 +52,17 @@ class WebSurferSystemOrchestrator(BaseOrchestrator):
 
 
 class WebSurferSystem(BaseSystem):
+    """
+        WebSurferSystem that communicates with either a local or hosted WebSurfer model to perform web-based tasks.
+        If websurfer_client_cfg is not provided, it defaults to a local vllm server on localhost:5000 which ought to have already been started.
+        Otherwise, it can accept a config dict, a list of config dicts (randomly choosing one per run), or a path to a config file to a foundry endpoint.
+    """
     def __init__(
         self,
         system_name: str,
         web_surfer_model_type: str = "fara",
         max_rounds: int = 2,
-        websurfer_client_cfg: Union[None, Dict[str, Any], str] = None,
+        websurfer_client_cfg: Union[None, Dict[str, Any], List[Dict[str, Any]], str] = None,
         answer_agent_client_cfg: Union[None, Dict[str, Any]] = None,
         start_on_target_url: bool = False,
         browserbase: bool = False,
@@ -142,11 +148,26 @@ class WebSurferSystem(BaseSystem):
             question_text = example_data.get("question", "")
 
             # Config for the local OpenAI-compatible server
-            client_config = {
-                "model": "gpt-4o-mini-2024-07-18",
-                "base_url": "http://localhost:5000/v1",
-                "api_key": "not-needed",
-            }
+            if not self.websurfer_client_cfg:
+                ### assumes local vllm server on localhost:5000 which should have already been started by this point
+                client_config = {
+                    "model": "gpt-4o-mini-2024-07-18",
+                    "base_url": "http://localhost:5000/v1",
+                    "api_key": "not-needed",
+                }
+            else:
+                ### assumes endpoints are loaded from fara/src/fara/webeval/scripts/eval_exp.py:get_foundry_endpoint_configs
+                if isinstance(self.websurfer_client_cfg, str):
+                    # load from file
+                    with open(self.websurfer_client_cfg, "r") as f:
+                        client_config = json.load(f)
+                elif isinstance(self.websurfer_client_cfg, list):
+                    # use a random config from the list
+                    client_config = random.choice(self.websurfer_client_cfg)
+                elif isinstance(self.websurfer_client_cfg, dict):
+                    client_config = self.websurfer_client_cfg
+                else:
+                    raise ValueError("Invalid websurfer_client_cfg type, must be a valid config with model, base_url, api_key fields")
 
             # Create the FaraAgent instance
             for _ in range(1):

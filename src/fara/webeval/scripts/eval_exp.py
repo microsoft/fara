@@ -59,9 +59,29 @@ def get_default_vllm_model_config(model_port):
     }
     return default_vllm_model_config
 
+def get_foundry_endpoint_configs(endpoint_config_path: str) -> List[Dict]:
+    endpoint_path = Path(endpoint_config_path).resolve()
+    if endpoint_path.is_dir():
+        config_files = sorted(list(endpoint_path.iterdir()))
+    else:
+        config_files = [endpoint_path]
+
+    websurfer_client_cfg = []
+    try:
+        for config_file in config_files:
+            with open(config_file, 'r') as f:
+                config = json.load(f)
+                assert "model" in config and "base_url" in config and "api_key" in config, f"Config file {config_file} is missing required fields: model, base_url, api_key"
+                assert config["api_key"], f"API key in config file {config_file} is empty"
+                websurfer_client_cfg.append(config)
+    except Exception as e:
+        raise RuntimeError(f"Error loading endpoint configs from {endpoint_config_path}: {e}")
+
+    return websurfer_client_cfg
+
 
 class ModelReference:
-    def __init__(self, model_url, model_port, device_id, max_n_images, model_name=None, dtype='auto', enforce_eager=False):
+    def __init__(self, model_url, model_port, device_id, max_n_images, model_name=None, dtype='auto', enforce_eager=False, use_external_endpoint=False):
         self.model_url_to_start = model_url
         self.model_port = model_port
         self.model_url_to_log = model_url
@@ -72,7 +92,15 @@ class ModelReference:
         self.max_n_images = max_n_images
         self.dtype = dtype
         self.enforce_eager = enforce_eager
-        if model_url is None:
+        self.use_external_endpoint = use_external_endpoint
+
+        if self.use_external_endpoint:
+            # If using external endpoint, model_url is expected to be a config dict or path to config file
+            self.model_url_to_log = model_url
+            self.model_to_log = model_url
+            self.model_prefix = "external_model"
+            return
+        elif model_url is None:
             if self.model_name:
                 logging.info(f'Using provided model name: {self.model_name}')
                 self.model_prefix = self.model_name.replace('/', '_').replace(':', '_')
@@ -156,7 +184,7 @@ class EvalExp:
         out_context = Path(out_url).expanduser()
         model_ref.log_2_mlflow()
         # with out_az.mount(readonly = False) as out_context, \
-        with AzVllm(model_ref.model_url_to_start, model_ref.model_port, model_ref.device_id, model_ref.max_n_images, model_ref.dtype, model_ref.enforce_eager) as vllm:
+        with AzVllm(model_ref.model_url_to_start, model_ref.model_port, model_ref.device_id, model_ref.max_n_images, model_ref.dtype, model_ref.enforce_eager, model_ref.use_external_endpoint) as vllm:
             mlflow.log_param('benchmark', benchmark.name)
             cmd = ' '.join(sys.argv)
             try:

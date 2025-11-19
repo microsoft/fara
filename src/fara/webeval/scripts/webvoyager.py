@@ -1,13 +1,12 @@
 from webeval.systems.websurfer import WebSurferSystem
 from webeval.benchmarks import WebVoyagerBenchmark
 from pathlib import Path
-import argparse
 import numpy as np
 import os
 import logging
 # from aztool.workspace import Workspace, AIF_WORKSPACE
 import mlflow
-from eval_exp import EvalExp, ModelReference, get_default_vllm_model_config
+from eval_exp import EvalExp, ModelReference, get_default_vllm_model_config, get_foundry_endpoint_configs
 from webeval.oai_clients.graceful_client import GracefulRetryClient
 from webeval.eval_result import EvalResult, Stage
 from arg_parsing import get_eval_args
@@ -42,7 +41,7 @@ def main():
         seed = args.seed)
   
     with experiment.start_run() as run:
-        model_ref = ModelReference(args.model_url, args.model_port, args.device_id, args.web_surfer_kwargs.get('max_n_images', 3), args.gpt_solver_model_name, args.dtype, args.enforce_eager)
+        model_ref = ModelReference(args.model_url, args.model_port, args.device_id, args.web_surfer_kwargs.get('max_n_images', 3), args.gpt_solver_model_name, args.dtype, args.enforce_eager, use_external_endpoint=bool(args.model_endpoint))
 
         logger = logging.getLogger('webvoyager-eval')
         logger.setLevel(logging.INFO)
@@ -53,10 +52,19 @@ def main():
         else:
             mlflow.log_param('web_surfer_model_type', args.web_surfer_model_type)
         mlflow.log_param('fn_call_template', args.fn_call_template)
-        
-        websurfer_client_cfg = get_default_vllm_model_config(args.model_port)
-        if args.web_surfer_client_cfg is not None:
-            websurfer_client_cfg = args.web_surfer_client_cfg        
+
+        # If using external endpoint, load all endpoint configs into a list of dicts
+        if args.model_endpoint:
+            websurfer_client_cfg = get_foundry_endpoint_configs(args.model_endpoint)
+            logger.info(f"Loaded {len(websurfer_client_cfg)} external endpoint config(s) from {args.model_endpoint}")
+            model_ref.model_url_to_log = websurfer_client_cfg[0]['base_url']  # log the first endpoint URL as
+            model_ref.model_to_log = websurfer_client_cfg[0]['base_url']
+            mlflow.log_param('using_external_endpoint', True)
+            mlflow.log_param('endpoint_config_path', ','.join([x['base_url'] for x in websurfer_client_cfg]))
+        else:
+            websurfer_client_cfg = get_default_vllm_model_config(args.model_port)
+            if args.web_surfer_client_cfg is not None:
+                websurfer_client_cfg = args.web_surfer_client_cfg        
         if args.web_surfer_kwargs:
             mlflow.log_params({f'web_surfer_kwargs.{k}': v  for k, v in args.web_surfer_kwargs.items()})
         system = WebSurferSystem(
