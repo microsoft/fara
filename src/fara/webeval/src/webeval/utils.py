@@ -233,28 +233,13 @@ class LogHandler(logging.FileHandler):
                 )
                 self.logs_list.append(json.loads(record.msg))
                 super().emit(record)
-            elif isinstance(record.msg, TaskProposalEvent):
-                record.msg = json.dumps(
-                    {
-                        "timestamp": ts,
-                        "type": "TaskProposalEvent",
-                        "task_url": record.msg.task_url,
-                        "message" : record.msg.message,
-                    }
-                )
-                self.logs_list.append(json.loads(record.msg))
-                super().emit(record)
-            elif isinstance(record.msg, WebSurferLogPre):
-                payload = asdict(record.msg)
+            else:
+                try:
+                    payload = asdict(record.msg)
+                except Exception:
+                    payload = {"message": str(record.msg)}
                 payload["timestamp"] = ts
-                payload["type"] = "WebSurferLogPre"
-                record.msg = json.dumps(payload)
-                self.logs_list.append(json.loads(record.msg))
-                super().emit(record)
-            elif isinstance(record.msg, WebSurferLogPost):
-                payload = asdict(record.msg)
-                payload["timestamp"] = ts
-                payload["type"] = "WebSurferLogPost"
+                payload["type"] = "OtherEvent"
                 record.msg = json.dumps(payload)
                 self.logs_list.append(json.loads(record.msg))
                 super().emit(record)
