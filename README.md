@@ -102,6 +102,9 @@ If you see lots of aborted trajectories, you should re-run the webvoyager.py scr
 ### Structure of Eval Folders:
 The Eval folder is unique to the model, dataset, username who ran the command, and run_id. The folder contains `gpt_eval` and `traj` subdirectories. The latter contains another subdir for each task ID in webvoyager dataset, which itself contains 
 - final_answer.json e.g. `Amazon--1_final_answer.json`. If you see `<no_answer>` it means either the trajectory was aborted, or the step budget was exceeded without terminate(). 
-- `scores` containing the llm-as-a-judge score file
+- <details>
+<summary>`scores` containing the llm-as-a-judge score file `gpt_eval.json` </summary>
+{"score": 1.0, "gpt_response_text": "To evaluate the task, we need to verify if the criteria have been met:\n\n1. **Recipe Requirement**: A vegetarian lasagna recipe with zucchini and at least a four-star rating.\n\n2. **Search and Results**:\n   - The screenshots show that the search term used was \"vegetarian lasagna zucchini.\"\n   - Among the search results, \"Debbie\u2019s Vegetable Lasagna\" is prominently featured.\n   \n3. **Evaluation of the Recipe**:\n   - Rating: \"Debbie's Vegetable Lasagna\" has a rating of 4.7, which satisfies the requirement of being at least four stars.\n   - The presence of zucchini in the recipe is implied through the search conducted, though the screenshots do not explicitly show the ingredients list. However, the result response confirms the match to the criteria.\n\nGiven the information provided, the task seems to have fulfilled the requirement of finding a vegetarian lasagna recipe with zucchini and a four-star rating or higher. \n\n**Verdict: SUCCESS**"}
+<details>
 - `web_surfer.log` which contains a history of all the actions and errors 
 - all the `screenshot_X.png` captured immediately before each action X. 
