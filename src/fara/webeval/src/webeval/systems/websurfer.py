@@ -183,7 +183,7 @@ class WebSurferSystem(BaseSystem):
                     to_resize_viewport=True,
                     single_tab_mode=True,
                     animate_actions=False,
-                    use_browser_base=False,
+                    use_browser_base=self.use_browserbase,
                     logger=logger
                 )
 
