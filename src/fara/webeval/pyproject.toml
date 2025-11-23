@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "webeval"
+version = "0.0.1"
+license = "MIT"
+description = ''
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = []
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+
+dependencies = [
+    "autogen-core@{root:parent:parent:parent:uri}/autogen/python/packages/autogen-core",
+    "autogen-ext@{root:parent:parent:parent:uri}/autogen/python/packages/autogen-ext",
+    "openai",
+    "playwright",
+    "docker",
+    "huggingface_hub",
+    "tabulate",
+    "azure-identity",
+    "pandas",
+    "scipy",
+    "pydantic",
+    "nest_asyncio",
+    "qwen-agent",
+    "vllm==0.10.0",
+    "torch==2.7.1",
+    "torchvision==0.22.1",
+    "torchaudio==2.7.1",
+    "transformers==4.53.3",
+    "backoff",
+    "anthropic",
+    "joblib",
+    "mlflow",
+    "rpds-py"
+]
+
+
+
+[tool.uv]
+dev-dependencies = [
+    "poethepoet",
+    "ruff"
+]
+
+[project.scripts]
+webeval = "webeval.cli:main"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.poe.tasks]
+fmt = "ruff format"
+format.ref = "fmt"
+lint = "ruff check"

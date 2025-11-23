@@ -1,0 +1,16 @@
+{
+    "CHAT_COMPLETION_PROVIDER": "azure",
+    "CHAT_COMPLETION_KWARGS_JSON": {
+        "api_version": "2025-01-01-preview",
+        "azure_endpoint": "https://<your_endpoint>.openai.azure.com/",
+        "model_capabilities": {
+            "function_calling": true,
+            "json_output": true,
+            "vision": true
+        },
+        "azure_deployment": "<your_deployment>",
+        "azure_ad_token_provider": "default",
+        "model": "gpt-4o",
+        "max_retries": 5
+    }
+}
