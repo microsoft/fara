@@ -1,40 +1,196 @@
-# Install:
+<div align="center">
+
+# FARA: Fast and Accurate Web Agent
+
+<img src="figures/webvoyager_accuracy_vs_cost_v2.png" alt="FARA Performance" width="600"/>
+
+[![Microsoft](https://img.shields.io/badge/Microsoft-Project-0078D4?logo=microsoft)](https://aka.ms/msaif/fara)
+[![Hugging Face Model](https://img.shields.io/badge/🤗-Model-yellow)](https://huggingface.co/microsoft/fara-7b)
+[![Foundry](https://img.shields.io/badge/Azure-Foundry-0089D6)](https://aka.ms/foundry-fara-7b)
+[![Dataset](https://img.shields.io/badge/🤗-WebTailBench%20Dataset-orange)](https://huggingface.co/datasets/microsoft/WebTailBench)
+
+</div>
+
+---
+
+## Overview
+
+**FARA-7B** is Microsoft's first **agentic small language model (SLM)** designed specifically for computer use. With only 7 billion parameters, FARA-7B is an ultra-compact Computer Use Agent (CUA) that achieves state-of-the-art performance within its size class and is competitive with larger, more resource-intensive agentic systems.
+
+### What Makes FARA-7B Unique
+
+Unlike traditional chat models that generate text-based responses, FARA-7B leverages computer interfaces—mouse and keyboard—to perform multi-step tasks on behalf of users. The model:
+
+- **Operates visually** by perceiving webpages and taking actions like scrolling, typing, and clicking on directly predicted coordinates
+- **Uses the same modalities as humans** to interact with computers—no accessibility trees or separate parsing models required
+- **Enables on-device deployment** due to its compact 7B parameter size, resulting in reduced latency and improved privacy as user data remains local
+- **Completes tasks efficiently**, averaging only ~16 steps per task compared to ~41 for comparable models
+
+FARA-7B is trained using a novel synthetic data generation pipeline built on the [Magentic-One](https://www.microsoft.com/en-us/research/articles/magentic-one-a-generalist-multi-agent-system-for-solving-complex-tasks/) multi-agent framework, with 145,000 trajectories covering diverse websites, task types, and difficulty levels. The model is based on [Qwen2.5-VL-7B](https://arxiv.org/abs/2502.13923) and trained purely with supervised fine-tuning (no reinforcement learning).
+
+### Key Capabilities
+
+FARA-7B can automate everyday web tasks including:
+- Searching for information and summarizing results
+- Filling out forms and managing accounts
+- Booking travel, movie tickets, and restaurant reservations
+- Shopping and comparing prices across retailers
+- Finding job postings and real estate listings
+
+### Performance Highlights
+
+FARA-7B achieves state-of-the-art results across multiple web agent benchmarks, outperforming both comparable-sized models and larger systems:
+
+| Model | Params | WebVoyager | Online-M2W | DeepShop | WebTailBench |
+|-------|--------|------------|------------|----------|--------------|
+| **SoM Agents** | | | | | |
+| SoM Agent (GPT-4o-0513) | - | 90.6 | 57.7 | 49.1 | 60.4 |
+| SoM Agent (o3-mini) | - | 79.3 | 55.4 | 49.7 | 52.7 |
+| SoM Agent (GPT-4o) | - | 65.1 | 34.6 | 16.0 | 30.8 |
+| GLM-4.1V-9B-Thinking | 9B | 66.8 | 33.9 | 32.0 | 22.4 |
+| **Computer Use Models** | | | | | |
+| OpenAI computer-use-preview | - | 70.9 | 42.9 | 24.7 | 25.7 |
+| UI-TARS-1.5-7B | 7B | 66.4 | 31.3 | 11.6 | 19.5 |
+| **FARA-7B** | **7B** | **73.5** | **34.1** | **26.2** | **38.4** |
+
+*Table: Online agent evaluation results showing success rates (%) across four web benchmarks. Results are averaged over 3 runs.*
+
+### WebTailBench: A New Benchmark for Real-World Web Tasks
+
+We are releasing **[WebTailBench](https://huggingface.co/datasets/microsoft/WebTailBench)**, a new evaluation benchmark focusing on 11 real-world task types that are underrepresented or missing in existing benchmarks. The benchmark includes 609 tasks across diverse categories, with the first 8 segments testing single skills or objectives (usually on a single website), and the remaining 3 evaluating more difficult multi-step or cross-site tasks.
+
+#### WebTailBench Detailed Results
+
+| Task Segment | Tasks | SoM GPT-4o-0513 | SoM o3-mini | SoM GPT-4o | GLM-4.1V-9B | OAI Comp-Use | UI-TARS-1.5 | **FARA-7B** |
+|--------------|-------|-----------------|-------------|------------|-------------|--------------|-------------|-------------|
+| **Single-Site Tasks** |
+| Shopping | 56 | 62.5 | 71.4 | 38.1 | 31.0 | 42.3 | 41.1 | **52.4** |
+| Flights | 51 | 60.1 | 39.2 | 11.1 | 10.5 | 17.6 | 10.5 | **37.9** |
+| Hotels | 52 | 68.6 | 56.4 | 31.4 | 19.9 | 26.9 | 35.3 | **53.8** |
+| Restaurants | 52 | 67.9 | 59.6 | 47.4 | 32.1 | 35.9 | 22.4 | **47.4** |
+| Activities | 80 | 70.4 | 62.9 | 41.7 | 26.3 | 30.4 | 9.6 | **36.3** |
+| Ticketing | 57 | 58.5 | 56.7 | 37.4 | 35.7 | 49.7 | 30.4 | **38.6** |
+| Real Estate | 48 | 34.0 | 17.4 | 20.1 | 16.0 | 9.0 | 9.7 | **23.6** |
+| Jobs/Careers | 50 | 49.3 | 44.0 | 32.7 | 22.7 | 20.7 | 20.7 | **28.0** |
+| **Multi-Step Tasks** |
+| Shopping List (2 items) | 51 | 66.0 | 62.7 | 17.0 | 7.8 | 34.0 | 20.9 | **49.0** |
+| Comparison Shopping | 57 | 67.3 | 59.1 | 27.5 | 22.8 | 1.2 | 8.8 | **32.7** |
+| Compositional Tasks | 55 | 51.5 | 39.4 | 26.7 | 17.0 | 10.3 | 9.1 | **23.0** |
+| **Overall** |
+| Macro Average | 609 | 59.7 | 51.7 | 30.1 | 22.0 | 25.3 | 19.9 | **38.4** |
+| Micro Average | 609 | 60.4 | 52.7 | 30.8 | 22.4 | 25.7 | 19.5 | **38.4** |
+
+*Table: Breakdown of WebTailBench results across all 11 segments. Success rates (%) are averaged over 3 independent runs. FARA-7B achieves the highest performance among computer-use models across all task categories.*
+
+**Coming Soon:**
+- Task Verification pipeline for LLM-as-a-judge evaluation
+- Official human annotations of WebTailBench (in partnership with BrowserBase)
+
+### Evaluation Infrastructure
+
+Our evaluation setup leverages:
+
+1. **Playwright** - A cross-browser automation framework that replicates browser environments
+2. **Abstract Web Agent Interface** - Allows integration of any model from any source into the evaluation environment
+3. **FARA-Agent Class** - Reference implementation for running the FARA model
+
+> **Note:** FARA-7B is an experimental release designed to invite hands-on exploration and feedback from the community. We recommend running it in a sandboxed environment, monitoring its execution, and avoiding sensitive data or high-risk domains.
+
+---
+
+## Installation
+
+Install the package using either UV or pip:
 
 ```bash
 uv sync --all-extras
 ```
-or 
+
+or
+
 ```bash
 pip install -e .
 ```
 
-Then install playwright browsers:
+Then install Playwright browsers:
 
 ```bash
 playwright install
-``` 
+```
 
-# Hosting model:
+---
 
-## downloading model:
-We also released the model checkpoints as git-lfs files under model_checkpoints/
+## Hosting the Model
 
-`git lfs install`
-`git lfs pull`
+**Recommended:** The easiest way to get started is using Azure Foundry hosting, which requires no GPU hardware or model downloads. Alternatively, you can self-host with VLLM if you have GPU resources available.
 
-## VLLM
-1. If hosting a model whose weights you have downloaded locally on a GPU machine:
-`python az_vllm.py --model_url /path/to/model_checkpoints/ --device_id 0,1` which will default to port 5000. We prefer to host across two devices depending on how many gpus you have and how much memory they have: `--device_id 0,1`. 
+### Azure Foundry Hosting (Recommended)
 
-Then run `test_fara_agent.py` for an example of how to run the Fara agent. You will see a `client_config` which points to `"base_url": "http://localhost:5000/v1"` which is from above. 
+Deploy FARA-7B on [Azure Foundry](https://ai.azure.com/explore/models/Fara-7B/version/2/registry/azureml-msr) without needing to download weights or manage GPU infrastructure.
+
+**Setup:**
+
+1. Deploy the FARA-7B model on Azure Foundry and obtain your endpoint URL and API key
+2. Add your endpoint details to the existing `endpoint_configs/` directory (example configs are already provided):
+
+```bash
+# Edit one of the existing config files or create a new one
+# endpoint_configs/fara-7b-hosting-ansrz.json (example format):
+{
+    "model": "Fara-7B",
+    "base_url": "https://your-endpoint.inference.ml.azure.com/",
+    "api_key": "YOUR_API_KEY_HERE"
+}
+```
+
+3. Run the FARA agent:
+
+```bash
+python test_fara_agent.py --task "how many pages does wikipedia have" --start_page "https://www.bing.com"
+```
+
+That's it! No GPU or model downloads required.
+
+### Self-hosting with VLLM
+
+If you have access to GPU resources, you can self-host FARA-7B using VLLM. This requires a GPU machine with sufficient VRAM.
+
+First, download the Fara-7B model weights from HuggingFace using the provided script:
+
+```bash
+# Install huggingface_hub if not already installed
+pip install -U huggingface_hub
+
+# optional, login to HuggingFace CLI 
+huggingface-cli login
+
+# Download the model (will be saved to model_checkpoints/fara-7b)
+python scripts/download_model.py --output-dir ./model_checkpoints --token YOUR_HF_TOKEN
+```
+
+The script will download the model to `model_checkpoints/fara-7b/` by default. You can also download manually from [HuggingFace](https://huggingface.co/microsoft/fara-7b).
+
+Second, host the model locally on a GPU machine:
+
+```bash
+python az_vllm.py --model_url /path/to/model_checkpoints/ --device_id 0,1
+```
+
+This defaults to port 5000. We recommend hosting across multiple devices depending on GPU count and memory: `--device_id 0,1`.
+
+### Testing the FARA Agent
+
+Run the test script to see FARA in action:
 
 ```bash
 python test_fara_agent.py --task "how many pages does wikipedia have" --start_page "https://www.bing.com" [--headful] [--downloads_folder "/path/to/downloads"] [--save_screenshots] [--max_rounds 100] [--browserbase]
 ```
-If you set `--browserbase`, you need to export environment variables for the api key and project id. 
 
-## Expected Output:
-You will see it output 
+The `client_config` points to `"base_url": "http://localhost:5000/v1"` from the VLLM server above.
+
+If you set `--browserbase`, export environment variables for the API key and project ID.
+
+#### Expected Output
 
 ```
 [fara_agent] Wikipedia currently has approximately 64,394,387 pages.
@@ -46,67 +202,148 @@ You will see it output
 INFO:__main__:Closing browser...
 ```
 
-# Inference at Scale:
+---
 
-## installation of webeval package
+# Reproducibility
+
+We provide a framework in `webeval/` to reproduce our results on WebVoyager and OnlineMind2Web. 
+Agentic evaluations on live websites present unique challenges due to day-to-day changes. We implement several measures to ensure reliable and comparable evaluations:
+
+**BrowserBase Integration**
+We employ BrowserBase to manage browser session hosting, enabling reliable browser instance management.
+
+**Time-sensitive Task Updates**
+Tasks in benchmarks like WebVoyager can become stale or impossible. We:
+- Removed ~48 impossible tasks from the original WebVoyager benchmark
+- Updated ~50 tasks with future dates to keep them achievable
+- Example: *"Search for a hotel in Bali from Jan 1 to Jan 4, 2024"* → *"Search for a hotel in Bali from Jan 1 to Jan 4, 2026"*
+- Our updated WebVoyager benchmark is available at `src/fara/data/webvoyager/WebVoyager_data_08312025.jsonl`
+
+**Environment Error Handling**
+Browser errors (connection drops, page timeouts) are handled robustly:
+- Trajectories are retried up to 5 times when environment errors occur
+- Complete yet incorrect trajectories are never retried
+- Each retry starts with a fresh browser session, with no retained state
+
+**Step Budget**
+Each trajectory is capped at a maximum of 100 actions across all online benchmarks. Trajectories exceeding this budget without choosing to stop are considered incorrect.
+
+## WebEval Package Installation
+
 ```bash
 conda create --name fara_webeval python=3.12
 conda activate fara_webeval
 
-# install fara package if you haven't already from fara/
-pip install -e . 
+# Install fara package
+pip install -e .
 
-# first install autogen submodule
+# Install autogen submodule
 git submodule update --init --recursive
 cd autogen/python/packages
 pip install -e autogen-core
 pip install -e autogen-ext
 
-# cd back up and install webeval
-cd src/fara/webeval
+# Install webeval
+cd webeval
 pip install -e .
 
-# install playwright if you haven't already
+# Install playwright
 playwright install
 ```
 
-Then launch e.g. webvoyager evaluation, `cd src/fara/webeval/scripts` and do one of two options:
+## Running Evaluations
 
-Option 1: Host the model yourself on a gpu machine with VLLM:
+Navigate to the scripts directory:
+
 ```bash
-python webvoyager.py --model_url ../../../../model_checkpoints/fara-7b/ --model_port 5000 --eval_oai_config ../endpoint_configs_gpt4o/dev/ --out_url /data/data/Fara/eval --device_id 0,1 --processes 1 --run_id 1 --max_rounds 100
+cd webeval/scripts
 ```
 
-Option 2: deploy [Fara-7B on one or more Foundry endpoint(s)](https://ai.azure.com/explore/models/Fara-7B/version/2/registry/azureml-msr):
-Once you've deployed them on foundry, take note of each endpoint's url and key, and place them into separate jsons under `endpoint_configs/`. The point the main script to those via the `--model_endpoint` field:
+**Option 1: Self-hosted VLLM**
+
 ```bash
-python webvoyager.py --model_endpoint ../../../../endpoint_configs/ --eval_oai_config ../endpoint_configs_gpt4o/dev/ --out_url /data/data/Fara/eval --processes 1 --run_id 1_endpoint --max_rounds 100
+python webvoyager.py --model_url ../../model_checkpoints/fara-7b/ --model_port 5000 --eval_oai_config ../endpoint_configs_gpt4o/dev/ --out_url /data/data/Fara/eval --device_id 0,1 --processes 1 --run_id 1 --max_rounds 100
 ```
 
-Notes:
+**Option 2: Azure Foundry Deployment**
 
-We use the same llm-as-a-judge prompts and model (gpt-4o) that Webvoyager uses, which is why you need to specify `--eval_oai_config` argument. 
+Deploy [Fara-7B on Foundry endpoint(s)](https://ai.azure.com/explore/models/Fara-7B/version/2/registry/azureml-msr), then place endpoint URLs and keys in JSONs under `endpoint_configs/`:
 
-You can also set `--browserbase` to handle browser session management, but again you need to export environment variables for the api key and project id. 
-Be careful not to overload a single VLLM deployment with more than `--processes 10` or so requests concurrently because of weirdness like https://github.com/vllm-project/vllm/issues/19491
+```bash
+python webvoyager.py --model_endpoint ../../endpoint_configs/ --eval_oai_config ../endpoint_configs_gpt4o/dev/ --out_url /data/data/Fara/eval --processes 1 --run_id 1_endpoint --max_rounds 100
+```
 
-## Analyze Eval Run
-Beneath the `--out_url` there will be an Eval folder like `/runs/WebSurfer-fara-100-max_n_images-3/fara-7b/<your_username>/WebVoyager_WebVoyager_data_08312025.jsonl/<run_id>` based on unique properties like `--run_id`, version of webvoyager data found in `webeval/data/webvoyager`, etc. 
+### Notes
 
-After you ran the above `python webvoyager.py` command, you can enter that Eval folder into the `webeval/scripts/analyze_eval_results/analyze.ipynb` script and it will print out diagnostics of which tasks were aborted mid-trajectory and why, as well as the average score across non-aborted trajectories. 
+- We use the same LLM-as-a-judge prompts and model (GPT-4o) as WebVoyager, hence the `--eval_oai_config` argument
+- Set `--browserbase` for browser session management (requires exported API key and project ID environment variables)
+- Avoid overloading a single VLLM deployment with more than ~10 concurrent processes due to known issues
 
-A trajectory is aborted if and only if an error was raised during trajectory sampling. Trajectories that finished with a final terminate() call or those that exceeded the step budget are not considered aborted (though they may still receive a score of 0 and considered failures). Aborted trajectories are removed from this script's average computation. 
+---
 
-If you see lots of aborted trajectories, you should re-run the webvoyager.py script again (it will skip tasks that were not aborted, but only if you refer to the same run_id, username, etc). 
+## Analyzing Evaluation Results
 
-### Structure of Eval Folders:
-The Eval folder is unique to the model, dataset, username who ran the command, and run_id. The folder contains `gpt_eval` and `traj` subdirectories. The latter contains another subdir for each task ID in webvoyager dataset, which itself contains 
-- final_answer.json e.g. `Amazon--1_final_answer.json`. If you see `<no_answer>` it means either the trajectory was aborted, or the step budget was exceeded without terminate(). 
-- `scores` containing the llm-as-a-judge score file `gpt_eval.json`
+### Evaluation Output Structure
+
+Evaluation results are stored under `--out_url` in folders organized by:
+- Model name
+- Dataset
+- Username
+- Run ID
+
+Example path:
+```
+/runs/WebSurfer-fara-100-max_n_images-3/fara-7b/<username>/WebVoyager_WebVoyager_data_08312025.jsonl/<run_id>
+```
+
+Each evaluation folder contains:
+- `gpt_eval/` - LLM-as-a-judge evaluation results
+- `traj/` - Per-task trajectory subdirectories containing:
+  - `final_answer.json` (e.g., `Amazon--1_final_answer.json`) - `<no_answer>` indicates abortion or step budget exceeded
+  - `scores/gpt_eval.json` - LLM judge scores
+  - `web_surfer.log` - Action history and errors
+  - `screenshot_X.png` - Screenshots captured before each action X
+
+### Running Analysis
+
+Use the analysis notebook to compute metrics:
+
+```bash
+cd webeval/scripts/analyze_eval_results/
+jupyter notebook analyze.ipynb
+```
+
+The script:
+- Identifies trajectories aborted mid-execution and diagnostic reasons
+- Computes average scores across non-aborted trajectories
+- Distinguishes between aborted trajectories (errors during sampling) and completed trajectories (with terminate() call or step budget exceeded)
+
+To re-run failed tasks, execute the evaluation script again with the same `run_id` and `username` - it will skip non-aborted tasks.
+
 <details>
-<summary>example WebVoyager gpt_eval.json</summary>
-{"score": 1.0, "gpt_response_text": "To evaluate the task, we need to verify if the criteria have been met:\n\n1. **Recipe Requirement**: A vegetarian lasagna recipe with zucchini and at least a four-star rating.\n\n2. **Search and Results**:\n   - The screenshots show that the search term used was \"vegetarian lasagna zucchini.\"\n   - Among the search results, \"Debbie\u2019s Vegetable Lasagna\" is prominently featured.\n   \n3. **Evaluation of the Recipe**:\n   - Rating: \"Debbie's Vegetable Lasagna\" has a rating of 4.7, which satisfies the requirement of being at least four stars.\n   - The presence of zucchini in the recipe is implied through the search conducted, though the screenshots do not explicitly show the ingredients list. However, the result response confirms the match to the criteria.\n\nGiven the information provided, the task seems to have fulfilled the requirement of finding a vegetarian lasagna recipe with zucchini and a four-star rating or higher. \n\n**Verdict: SUCCESS**"}
+<summary>Example WebVoyager GPT Eval Result</summary>
+
+```json
+{
+  "score": 1.0,
+  "gpt_response_text": "To evaluate the task, we need to verify if the criteria have been met:\n\n1. **Recipe Requirement**: A vegetarian lasagna recipe with zucchini and at least a four-star rating.\n\n2. **Search and Results**:\n   - The screenshots show that the search term used was \"vegetarian lasagna zucchini.\"\n   - Among the search results, \"Debbie's Vegetable Lasagna\" is prominently featured.\n   \n3. **Evaluation of the Recipe**:\n   - Rating: \"Debbie's Vegetable Lasagna\" has a rating of 4.7, which satisfies the requirement of being at least four stars.\n   - The presence of zucchini in the recipe is implied through the search conducted, though the screenshots do not explicitly show the ingredients list. However, the result response confirms the match to the criteria.\n\nGiven the information provided, the task seems to have fulfilled the requirement of finding a vegetarian lasagna recipe with zucchini and a four-star rating or higher. \n\n**Verdict: SUCCESS**"
+}
+```
+
 </details>
 
-- `web_surfer.log` which contains a history of all the actions and errors 
-- all the `screenshot_X.png` captured immediately before each action X. 
+---
+
+## Citation
+
+If you use FARA in your research, please cite our work:
+
+<!-- ```bibtex
+@article{fara2025,
+  title={FARA: Fast and Accurate Web Agent},
+  author={Microsoft Research},
+  year={2025}
+}
+``` -->
+
+---
