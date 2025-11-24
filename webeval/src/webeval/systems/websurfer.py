@@ -194,6 +194,7 @@ class WebSurferSystem(BaseSystem):
                     downloads_folder=output_dir,
                     save_screenshots=True,
                     max_rounds=100,
+                    logger = logger
                 )
 
                 await agent.initialize()

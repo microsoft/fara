@@ -102,3 +102,12 @@ def message_to_openai_format(message: LLMMessage) -> Dict[str, Any]:
     else:
         # Simple text content
         return {"role": role, "content": message.content}
+
+
+@dataclass
+class WebSurferEvent:
+    source: str
+    message: str
+    url: str
+    action: str | None = None
+    arguments: Dict[str, Any] | None = None

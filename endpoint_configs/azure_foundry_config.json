@@ -1,0 +1,5 @@
+{
+    "model": "Fara-7B",
+    "base_url": "<YOUR ENDPOINT>",
+    "api_key": "<YOUR API KEY>"
+}

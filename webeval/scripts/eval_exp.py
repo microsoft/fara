@@ -117,13 +117,6 @@ class ModelReference:
         else:
             if _is_azure_blob_url(self.model_url_to_log):
                 raise NotImplementedError("Logging Azure Blob URLs is not implemented in this version.")
-                azblob = AzFolder.from_uri(self.model_url_to_log)
-                self.model_to_log = azblob.blob
-                if azblob.container == 'osagent' and azblob.account == 'aifrontiersplus' and (azblob.blob.startswith('models/') or azblob.blob.startswith('/models/')):
-                    stripped = azblob.blob[1:] if azblob.blob.startswith('/') else azblob.blob
-                    stripped = stripped[:-1] if stripped.endswith('/') else stripped
-                    self.model_prefix = stripped.replace('/', '_')
-                self.model_prefix = azblob.blob.replace('/', '_').replace(':', '_')
             else:
                 # It's a local directory
                 self.model_to_log = self.model_url_to_log
@@ -164,7 +157,6 @@ class Callback:
                 callback(result, self.mlflow, self.run_id)
 
 class EvalExp:
-    # DEFAULT_OUT = 'https://aifrontiersplus.blob.core.windows.net/osagent/eval/v01'
     DEFAULT_OUT = "~/.fara_eval"
     
     def __init__(self, ws = None, user = None, seed = None, max_n_images = 5, save_task_csv = False):

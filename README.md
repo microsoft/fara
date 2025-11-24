@@ -1,11 +1,11 @@
 <div align="center">
 
-# FARA: Fast and Accurate Web Agent
+# Fara-7B: An Efficient Agentic Model for Computer Use
 
-<img src="figures/model_accuracy_vs_cost_v2_glm_cost_updated.png" alt="FARA Performance" width="600"/>
+<img src="figures/model_accuracy_vs_cost_v2_glm_cost_updated.png" alt="Fara-7B Performance" width="600"/>
 
 [![Microsoft](https://img.shields.io/badge/Microsoft-Project-0078D4?logo=microsoft)](https://aka.ms/msaif/fara)
-[![Hugging Face Model](https://img.shields.io/badge/🤗-Model-yellow)](https://huggingface.co/microsoft/fara-7b)
+[![Hugging Face Model](https://img.shields.io/badge/🤗-Model-yellow)](https://huggingface.co/microsoft/Fara-7b)
 [![Foundry](https://img.shields.io/badge/Azure-Foundry-0089D6)](https://aka.ms/foundry-fara-7b)
 [![Dataset](https://img.shields.io/badge/🤗-WebTailBench%20Dataset-orange)](https://huggingface.co/datasets/microsoft/WebTailBench)
 
@@ -15,22 +15,22 @@
 
 ## Overview
 
-**FARA-7B** is Microsoft's first **agentic small language model (SLM)** designed specifically for computer use. With only 7 billion parameters, FARA-7B is an ultra-compact Computer Use Agent (CUA) that achieves state-of-the-art performance within its size class and is competitive with larger, more resource-intensive agentic systems.
+**Fara-7B** is Microsoft's first **agentic small language model (SLM)** designed specifically for computer use. With only 7 billion parameters, Fara-7B is an ultra-compact Computer Use Agent (CUA) that achieves state-of-the-art performance within its size class and is competitive with larger, more resource-intensive agentic systems.
 
-### What Makes FARA-7B Unique
+### What Makes Fara-7B Unique
 
-Unlike traditional chat models that generate text-based responses, FARA-7B leverages computer interfaces—mouse and keyboard—to perform multi-step tasks on behalf of users. The model:
+Unlike traditional chat models that generate text-based responses, Fara-7B leverages computer interfaces—mouse and keyboard—to perform multi-step tasks on behalf of users. The model:
 
 - **Operates visually** by perceiving webpages and taking actions like scrolling, typing, and clicking on directly predicted coordinates
 - **Uses the same modalities as humans** to interact with computers—no accessibility trees or separate parsing models required
 - **Enables on-device deployment** due to its compact 7B parameter size, resulting in reduced latency and improved privacy as user data remains local
 - **Completes tasks efficiently**, averaging only ~16 steps per task compared to ~41 for comparable models
 
-FARA-7B is trained using a novel synthetic data generation pipeline built on the [Magentic-One](https://www.microsoft.com/en-us/research/articles/magentic-one-a-generalist-multi-agent-system-for-solving-complex-tasks/) multi-agent framework, with 145,000 trajectories covering diverse websites, task types, and difficulty levels. The model is based on [Qwen2.5-VL-7B](https://arxiv.org/abs/2502.13923) and trained purely with supervised fine-tuning (no reinforcement learning).
+Fara-7B is trained using a novel synthetic data generation pipeline built on the [Magentic-One](https://www.microsoft.com/en-us/research/articles/magentic-one-a-generalist-multi-agent-system-for-solving-complex-tasks/) multi-agent framework, with 145K trajectories covering diverse websites, task types, and difficulty levels. The model is based on [Qwen2.5-VL-7B](https://arxiv.org/abs/2502.13923) and trained with supervised fine-tuning.
 
 ### Key Capabilities
 
-FARA-7B can automate everyday web tasks including:
+Fara-7B can automate everyday web tasks including:
 - Searching for information and summarizing results
 - Filling out forms and managing accounts
 - Booking travel, movie tickets, and restaurant reservations
@@ -39,7 +39,7 @@ FARA-7B can automate everyday web tasks including:
 
 ### Performance Highlights
 
-FARA-7B achieves state-of-the-art results across multiple web agent benchmarks, outperforming both comparable-sized models and larger systems:
+Fara-7B achieves state-of-the-art results across multiple web agent benchmarks, outperforming both comparable-sized models and larger systems:
 
 | Model | Params | WebVoyager | Online-M2W | DeepShop | WebTailBench |
 |-------|--------|------------|------------|----------|--------------|
@@ -51,7 +51,7 @@ FARA-7B achieves state-of-the-art results across multiple web agent benchmarks, 
 | **Computer Use Models** | | | | | |
 | OpenAI computer-use-preview | - | 70.9 | 42.9 | 24.7 | 25.7 |
 | UI-TARS-1.5-7B | 7B | 66.4 | 31.3 | 11.6 | 19.5 |
-| **FARA-7B** | **7B** | **73.5** | **34.1** | **26.2** | **38.4** |
+| **Fara-7B** | **7B** | **73.5** | **34.1** | **26.2** | **38.4** |
 
 *Table: Online agent evaluation results showing success rates (%) across four web benchmarks. Results are averaged over 3 runs.*
 
@@ -61,7 +61,7 @@ We are releasing **[WebTailBench](https://huggingface.co/datasets/microsoft/WebT
 
 #### WebTailBench Detailed Results
 
-| Task Segment | Tasks | SoM GPT-4o-0513 | SoM o3-mini | SoM GPT-4o | GLM-4.1V-9B | OAI Comp-Use | UI-TARS-1.5 | **FARA-7B** |
+| Task Segment | Tasks | SoM GPT-4o-0513 | SoM o3-mini | SoM GPT-4o | GLM-4.1V-9B | OAI Comp-Use | UI-TARS-1.5 | **Fara-7B** |
 |--------------|-------|-----------------|-------------|------------|-------------|--------------|-------------|-------------|
 | **Single-Site Tasks** |
 | Shopping | 56 | 62.5 | 71.4 | 38.1 | 31.0 | 42.3 | 41.1 | **52.4** |
@@ -80,7 +80,7 @@ We are releasing **[WebTailBench](https://huggingface.co/datasets/microsoft/WebT
 | Macro Average | 609 | 59.7 | 51.7 | 30.1 | 22.0 | 25.3 | 19.9 | **38.4** |
 | Micro Average | 609 | 60.4 | 52.7 | 30.8 | 22.4 | 25.7 | 19.5 | **38.4** |
 
-*Table: Breakdown of WebTailBench results across all 11 segments. Success rates (%) are averaged over 3 independent runs. FARA-7B achieves the highest performance among computer-use models across all task categories.*
+*Table: Breakdown of WebTailBench results across all 11 segments. Success rates (%) are averaged over 3 independent runs. Fara-7B achieves the highest performance among computer-use models across all task categories.*
 
 **Coming Soon:**
 - Task Verification pipeline for LLM-as-a-judge evaluation
@@ -92,9 +92,9 @@ Our evaluation setup leverages:
 
 1. **Playwright** - A cross-browser automation framework that replicates browser environments
 2. **Abstract Web Agent Interface** - Allows integration of any model from any source into the evaluation environment
-3. **FARA-Agent Class** - Reference implementation for running the FARA model
+3. **Fara-Agent Class** - Reference implementation for running the Fara model
 
-> **Note:** FARA-7B is an experimental release designed to invite hands-on exploration and feedback from the community. We recommend running it in a sandboxed environment, monitoring its execution, and avoiding sensitive data or high-risk domains.
+> **Note:** Fara-7B is an experimental release designed to invite hands-on exploration and feedback from the community. We recommend running it in a sandboxed environment, monitoring its execution, and avoiding sensitive data or high-risk domains.
 
 ---
 
@@ -126,11 +126,11 @@ playwright install
 
 ### Azure Foundry Hosting (Recommended)
 
-Deploy FARA-7B on [Azure Foundry](https://ai.azure.com/explore/models/Fara-7B/version/2/registry/azureml-msr) without needing to download weights or manage GPU infrastructure.
+Deploy Fara-7B on [Azure Foundry](https://ai.azure.com/explore/models/Fara-7B/version/2/registry/azureml-msr) without needing to download weights or manage GPU infrastructure.
 
 **Setup:**
 
-1. Deploy the FARA-7B model on Azure Foundry and obtain your endpoint URL and API key
+1. Deploy the Fara-7B model on Azure Foundry and obtain your endpoint URL and API key
 2. Add your endpoint details to the existing `endpoint_configs/` directory (example configs are already provided):
 
 ```bash
@@ -143,7 +143,7 @@ Deploy FARA-7B on [Azure Foundry](https://ai.azure.com/explore/models/Fara-7B/ve
 }
 ```
 
-3. Run the FARA agent:
+3. Run the Fara agent:
 
 ```bash
 python test_fara_agent.py --task "how many pages does wikipedia have" --start_page "https://www.bing.com"
@@ -153,7 +153,7 @@ That's it! No GPU or model downloads required.
 
 ### Self-hosting with VLLM
 
-If you have access to GPU resources, you can self-host FARA-7B using VLLM. This requires a GPU machine with sufficient VRAM.
+If you have access to GPU resources, you can self-host Fara-7B using VLLM. This requires a GPU machine with sufficient VRAM.
 
 First, download the Fara-7B model weights from HuggingFace using the provided script:
 
@@ -178,12 +178,12 @@ python az_vllm.py --model_url /path/to/model_checkpoints/ --device_id 0,1
 
 This defaults to port 5000. We recommend hosting across multiple devices depending on GPU count and memory: `--device_id 0,1`.
 
-### Testing the FARA Agent
+### Testing the Fara Agent
 
-Run the test script to see FARA in action:
+Run the test script to see Fara in action:
 
 ```bash
-python test_fara_agent.py --task "how many pages does wikipedia have" --start_page "https://www.bing.com" [--headful] [--downloads_folder "/path/to/downloads"] [--save_screenshots] [--max_rounds 100] [--browserbase]
+python test_fara_agent.py --task "how many pages does wikipedia have" --start_page "https://www.bing.com" --endpoint_config endpoint_configs/azure_foundry_config.json [--headful] [--downloads_folder "/path/to/downloads"] [--save_screenshots] [--max_rounds 100] [--browserbase]
 ```
 
 The `client_config` points to `"base_url": "http://localhost:5000/v1"` from the VLLM server above.
@@ -336,11 +336,11 @@ To re-run failed tasks, execute the evaluation script again with the same `run_i
 
 ## Citation
 
-If you use FARA in your research, please cite our work:
+If you use Fara in your research, please cite our work:
 
 <!-- ```bibtex
 @article{fara2025,
-  title={FARA: Fast and Accurate Web Agent},
+  title={Fara: Fast and Accurate Web Agent},
   author={Microsoft Research},
   year={2025}
 }
