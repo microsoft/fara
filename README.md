@@ -2,7 +2,7 @@
 
 # FARA: Fast and Accurate Web Agent
 
-<img src="figures/webvoyager_accuracy_vs_cost_v2.png" alt="FARA Performance" width="600"/>
+<img src="figures/model_accuracy_vs_cost_v2_glm_cost_updated.png" alt="FARA Performance" width="600"/>
 
 [![Microsoft](https://img.shields.io/badge/Microsoft-Project-0078D4?logo=microsoft)](https://aka.ms/msaif/fara)
 [![Hugging Face Model](https://img.shields.io/badge/🤗-Model-yellow)](https://huggingface.co/microsoft/fara-7b)
@@ -217,7 +217,7 @@ Tasks in benchmarks like WebVoyager can become stale or impossible. We:
 - Removed ~48 impossible tasks from the original WebVoyager benchmark
 - Updated ~50 tasks with future dates to keep them achievable
 - Example: *"Search for a hotel in Bali from Jan 1 to Jan 4, 2024"* → *"Search for a hotel in Bali from Jan 1 to Jan 4, 2026"*
-- Our updated WebVoyager benchmark is available at `src/fara/data/webvoyager/WebVoyager_data_08312025.jsonl`
+- Our updated WebVoyager benchmark is available at `webeval/data/webvoyager/WebVoyager_data_08312025.jsonl`
 
 **Environment Error Handling**
 Browser errors (connection drops, page timeouts) are handled robustly:
