@@ -18,8 +18,8 @@ classifiers = [
 
 
 dependencies = [
-    "autogen-core@{root:parent:parent:parent:uri}/autogen/python/packages/autogen-core",
-    "autogen-ext@{root:parent:parent:parent:uri}/autogen/python/packages/autogen-ext",
+    "autogen-core@{root:parent:uri}/autogen/python/packages/autogen-core",
+    "autogen-ext@{root:parent:uri}/autogen/python/packages/autogen-ext",
     "openai",
     "playwright",
     "docker",
