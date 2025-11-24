@@ -217,7 +217,7 @@ Tasks in benchmarks like WebVoyager can become stale or impossible. We:
 - Removed ~48 impossible tasks from the original WebVoyager benchmark
 - Updated ~50 tasks with future dates to keep them achievable
 - Example: *"Search for a hotel in Bali from Jan 1 to Jan 4, 2024"* → *"Search for a hotel in Bali from Jan 1 to Jan 4, 2026"*
-- Our updated WebVoyager benchmark is available at `src/fara/data/webvoyager/WebVoyager_data_08312025.jsonl`
+- Our updated WebVoyager benchmark is available at `webeval/data/webvoyager/WebVoyager_data_08312025.jsonl`
 
 **Environment Error Handling**
 Browser errors (connection drops, page timeouts) are handled robustly:
