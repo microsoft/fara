@@ -183,7 +183,7 @@ This defaults to port 5000. We recommend hosting across multiple devices dependi
 Run the test script to see FARA in action:
 
 ```bash
-python test_fara_agent.py --task "how many pages does wikipedia have" --start_page "https://www.bing.com" [--headful] [--downloads_folder "/path/to/downloads"] [--save_screenshots] [--max_rounds 100] [--browserbase]
+python test_fara_agent.py --task "how many pages does wikipedia have" --start_page "https://www.bing.com" --endpoint_config endpoint_configs/azure_foundry_config.json [--headful] [--downloads_folder "/path/to/downloads"] [--save_screenshots] [--max_rounds 100] [--browserbase]
 ```
 
 The `client_config` points to `"base_url": "http://localhost:5000/v1"` from the VLLM server above.
