@@ -26,6 +26,7 @@ from .types import (
     ModelResponse,
     FunctionCall,
     message_to_openai_format,
+    WebSurferEvent
 )
 from .utils import strip_url_query, get_trimmed_url
 
@@ -57,6 +58,7 @@ class FaraAgent:
         model_call_timeout: int = 20,
         max_rounds: int = 10,
         save_screenshots: bool = False,
+        logger: logging.Logger | None = None,
     ):
         self.downloads_folder = downloads_folder
         if not os.path.exists(self.downloads_folder or "") and self.downloads_folder:
@@ -77,7 +79,7 @@ class FaraAgent:
         self._facts = []
         self._action_history = []
         self._task_summary = None
-        self.logger = logging.getLogger(__name__)
+        self.logger = logger or logging.getLogger(__name__)
         self._mlm_width = 1440
         self._mlm_height = 900
         self.viewport_height = 900
@@ -421,11 +423,19 @@ class FaraAgent:
         self,
         function_call: List[FunctionCall],
     ) -> Tuple[bool, bytes, str]:
-        # name = function_call[0].name
+        name = function_call[0].name
         args = function_call[0].arguments
         action_description = ""
         assert self._page is not None
-
+        self.logger.info(
+            WebSurferEvent(
+                source="FaraAgent",
+                url=await self._playwright_controller.get_page_url(self._page),
+                action=name,
+                arguments=args,
+                message=f"{name}( {json.dumps(args)} )",
+            )
+        )
         if "coordinate" in args:
             args["coordinate"] = self.proc_coords(
                 args["coordinate"],
