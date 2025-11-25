@@ -201,8 +201,9 @@ class FaraAgent:
     ) -> List[LLMMessage]:
         """Remove old screenshots from the chat history. Assuming we have not yet added the current screenshot message.
 
-        Note: Original user messages (marked with is_original=True) are NEVER removed from history,
-        only boilerplate messages added during multi-round processing can be removed.
+        Note: Original user messages (marked with is_original=True) have their TEXT preserved,
+        but their images may be removed if we exceed max_n_images. Boilerplate messages can be
+        completely removed.
         """
         if self.max_n_images <= 0:
             return history
@@ -231,15 +232,19 @@ class FaraAgent:
                         has_image = True
                         break
                 if has_image:
-                    if is_original_user_message or n_images < max_n_images:
+                    if n_images < max_n_images:
                         new_history.append(msg)
+                    elif is_original_user_message:
+                        # Original user message but over limit: keep text, remove image
+                        msg = self.remove_screenshot_from_message(msg)
+                        if msg is not None:
+                            new_history.append(msg)
                     n_images += 1
                 else:
                     new_history.append(msg)
-            elif isinstance(msg.content, ImageObj) and (
-                is_original_user_message or n_images < max_n_images
-            ):
-                new_history.append(msg)
+            elif isinstance(msg.content, ImageObj):
+                if n_images < max_n_images:
+                    new_history.append(msg)
                 n_images += 1
             else:
                 new_history.append(msg)
