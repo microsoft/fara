@@ -146,7 +146,13 @@ playwright install
 
 ---
 
-## Hosting the Model
+## Windows Support for vLLM
+
+**Note:** While `vllm==0.10.0` can now be installed on Windows (the wheel build succeeds), it **does not support running natively on Windows**.
+
+If you are on Windows, you must use **WSL2 (Windows Subsystem for Linux)** with a Linux distribution (e.g., Ubuntu) to run Fara with the vLLM backend.
+
+Attempts to run vLLM natively on Windows will result in a `RuntimeError` with a clear message guiding you to use WSL2 or a different backend.
 
 **Recommended:** The easiest way to get started is using Azure Foundry hosting, which requires no GPU hardware or model downloads. Alternatively, you can self-host with VLLM if you have GPU resources available.
 

@@ -49,19 +49,6 @@ class VLLM:
         self.tensor_parallel_size = len(str(device_id).split(','))
         self.status = Status.NotStarted
         self.process = None
-        self.logs = []
-
-    @property
-    def endpoint(self):
-        return f"http://{self.host}:{self.port}/v1/"
-
-    def start(self):
-        def _drain(pipe):
-            for line in iter(pipe.readline, ''):
-                self.logs.append(line)
-                print(line, end='')          
-        env = os.environ.copy()
-        env['CUDA_VISIBLE_DEVICES'] = self.device_id
         env['NCCL_DEBUG'] = "TRACE"
         self.process = subprocess.Popen(
             self.cmd.format(
