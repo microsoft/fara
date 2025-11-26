@@ -378,7 +378,8 @@ class FaraAgent:
             all_actions.append(raw_response)
             thoughts, action_dict = self._parse_thoughts_and_action(raw_response)
             action_args = action_dict.get("arguments", {})
-            self.logger.info(f"\nThought #{i+1}: {thoughts}\nAction #{i+1}: executing tool '{action_args["action"]}' with arguments {json.dumps(action_args)}")
+            action = action_args["action"]
+            self.logger.info(f"\nThought #{i+1}: {thoughts}\nAction #{i+1}: executing tool '{action}' with arguments {json.dumps(action_args)}")
 
             (
                 is_stop_action,
