@@ -49,8 +49,7 @@ Notes:
 
 Unlike traditional chat models that generate text-based responses, Fara-7B leverages computer interfaces—mouse and keyboard—to perform multi-step tasks on behalf of users. The model:
 
-- **Operates visually** by perceiving webpages and taking actions like scrolling, typing, and clicking on directly predicted coordinates
-- **Uses the same modalities as humans** to interact with computers—no accessibility trees or separate parsing models required
+- **Operates visually** by perceiving webpages and taking actions like scrolling, typing, and clicking on directly predicted coordinates without accessibility trees or separate parsing models
 - **Enables on-device deployment** due to its compact 7B parameter size, resulting in reduced latency and improved privacy as user data remains local
 - **Completes tasks efficiently**, averaging only ~16 steps per task compared to ~41 for comparable models
 
