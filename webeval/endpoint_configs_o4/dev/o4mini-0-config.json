@@ -1,0 +1,16 @@
+{
+  "CHAT_COMPLETION_PROVIDER": "azure",
+  "CHAT_COMPLETION_KWARGS_JSON": {
+    "api_version": "2025-04-01-preview",
+    "azure_endpoint": "https://<your-endpoint>.openai.azure.com/",
+    "model_capabilities": {
+      "function_calling": true,
+      "json_output": true,
+      "vision": true
+    },
+    "azure_deployment": "<your-deployment-name>",
+    "azure_ad_token_provider": "default",
+    "model": "o4-mini",
+    "max_retries": 5
+  }
+}

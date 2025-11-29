@@ -4,7 +4,7 @@
 from .webvoyager.webvoyager import WebVoyagerBenchmark
 # from .mdm2w.mdm2w import MultimodalM2WBenchmark
 # from .aurora.aurora import AuroraBenchmark
-# from .om2w.om2w import OnlineM2WBenchmark
+from .om2w.om2w import OnlineM2WBenchmark
 # from .holdout.holdout import HoldoutBenchmark
 # from .deepshop.deepshop import DeepShopBenchmark
 # from .browsecomp.browsecomp import BrowseCompBenchmark
@@ -23,7 +23,7 @@ __all__ = [
     "WebVoyagerBenchmark",
     # "MultimodalM2WBenchmark",
     # "AuroraBenchmark",
-    # "OnlineM2WBenchmark",
+    "OnlineM2WBenchmark",
     # "HoldoutBenchmark",
     # "DeepShopBenchmark",
     # "BrowseCompBenchmark",
