@@ -246,7 +246,7 @@ def aggregate_post_eval_errors(folders, long_session_threshold_seconds=1800, num
         score_file = None
         scores_dir = item['name'] / 'scores'
         if scores_dir.exists():
-            for score_filename in ['0.8-5-3.json', 'gpt_eval.json']:
+            for score_filename in ['0.8-5-3.json', 'gpt_eval.json', 'WebJudge_Online_Mind2Web_eval-3.json']:
                 potential_score_file = scores_dir / score_filename
                 if potential_score_file.exists():
                     score_file = potential_score_file
@@ -254,7 +254,7 @@ def aggregate_post_eval_errors(folders, long_session_threshold_seconds=1800, num
 
         uses_heldout_verifiers = True if score_file and '0.8-5-3.json' in str(score_file) else False
         if not uses_heldout_verifiers:
-            assert score_file is None or 'gpt_eval.json' in str(score_file), f"Unexpected score file found: {score_file}"
+            assert score_file is None or ('gpt_eval.json' in str(score_file) or 'WebJudge_Online_Mind2Web_eval-3.json' in str(score_file)), f"Unexpected score file found: {score_file}"
         
         if core_log_file:
             try:

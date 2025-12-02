@@ -318,6 +318,8 @@ Make sure you set a valid OpenAI GPT-4o endpoint in `endpoint_configs_gpt4o/dev`
 
 ```bash
 python webvoyager.py --model_url /path/where/you/want/to/download/model/ --model_port 5000 --eval_oai_config ../endpoint_configs_gpt4o/dev/ --out_url /path/to/save/eval/files --device_id 0,1 --processes 1 --run_id 1 --max_rounds 100
+python om2w.py --model_url /path/where/you/want/to/download/model/ --model_port 5000 --eval_oai_config ../endpoint_configs_o4/dev/ --eval_model o4-mini --out_url /path/to/save/eval/files --device_id 0,1 --processes 1 --run_id 1 --max_rounds 100
+
 ```
 
 **Option 2: Azure Foundry Deployment**
@@ -326,6 +328,7 @@ Deploy [Fara-7B on Foundry endpoint(s)](https://ai.azure.com/explore/models/Fara
 
 ```bash
 python webvoyager.py --model_endpoint ../../endpoint_configs/ --eval_oai_config ../endpoint_configs_gpt4o/dev/ --out_url /path/to/save/eval/files --processes 1 --run_id 1_endpoint --max_rounds 100
+python om2w.py --model_endpoint ../../endpoint_configs/ --eval_oai_config ../endpoint_configs_o4/dev/ --eval_model o4-mini --out_url /path/to/save/eval/files --processes 1 --run_id 1_endpoint --max_rounds 100
 ```
 
 ### Notes
@@ -356,10 +359,12 @@ Example path:
 Each evaluation folder contains:
 - `gpt_eval/` - LLM-as-a-judge evaluation results
 - `traj/` - Per-task trajectory subdirectories containing:
-  - `final_answer.json` (e.g., `Amazon--1_final_answer.json`) - `<no_answer>` indicates abortion or step budget exceeded
-  - `scores/gpt_eval.json` - LLM judge scores
+  - `*-final_answer.json` (e.g., `Amazon--1_final_answer.json`) - `<no_answer>` indicates abortion or step budget exceeded
+  - `scores/*_eval.json` - LLM judge scores (`gpt_eval.json` for WebVoyager, `WebJudge_Online_Mind2Web_eval-3.json` for Online-Mind2Web)
   - `web_surfer.log` - Action history and errors
   - `screenshot_X.png` - Screenshots captured before each action X
+  - `times.json` - contains start and endtimes of task
+  - `core.log` - contains high level logs like if the trajectory needs to be started or is already cached/done, the evaluation score, duration, and errors encountered
 
 ### Running Analysis
 
@@ -388,6 +393,18 @@ To re-run failed tasks, execute the evaluation script again with the same `run_i
 ```
 
 </details>
+
+<details>
+<summary>Example of web_surfer.log (action history)</summary>
+
+```json
+{"message": "\nThought #1: To begin locating the closest GameStop store, I will click on the 'Trade-In' button, which typically leads to a store locator feature on retail websites.\nAction #1: executing tool 'left_click' with arguments {\"action\": \"left_click\", \"coordinate\": [1074, 37]}", "timestamp": "2025-11-25T22:23:42.788320", "type": "OtherEvent"}
+{"message": "Observation#1: I clicked at coordinates (1083.0252100840337, 37.16517857142858).", "timestamp": "2025-11-25T22:23:47.616613", "type": "OtherEvent"}
+{"message": "\nThought #2: Since access to Gamestop's website has been blocked, I will search for alternative sources of store location and hours for GameStop locations near zip code 90028. This could include cached or third-party website information.\nAction #2: executing tool 'web_search' with arguments {\"action\": \"web_search\", \"query\": \"GameStop store locator zip code 90028\"}", "timestamp": "2025-11-25T22:23:50.579702", "type": "OtherEvent"}
+{"message": "Observation#2: I typed 'GameStop store locator zip code 90028' into the browser search bar.", "timestamp": "2025-11-25T22:23:55.119495", "type": "OtherEvent"}
+{"message": "\nThought #3: The closest GameStop store to zip code 90028 is located at 5533 W Sunset Blvd, Los Angeles, CA 90028. It is currently closed and will open tomorrow at 11 AM. The contact number is (323) 466-3714.\nAction #3: executing tool 'terminate' with arguments {\"action\": \"terminate\", \"status\": \"success\"}", "timestamp": "2025-11-25T22:23:58.729038", "type": "OtherEvent"}
+{"message": "Observation#3: The closest GameStop store to zip code 90028 is located at 5533 W Sunset Blvd, Los Angeles, CA 90028. It is currently closed and will open tomorrow at 11 AM. The contact number is (323) 466-3714.", "timestamp": "2025-11-25T22:24:02.379069", "type": "OtherEvent"}
+```
 
 ---
 
