@@ -196,6 +196,19 @@ pip install -e .
 python3 -m playwright install
 ```
 
+### Debugging with VS Code
+
+To debug the `fara.run_fara` module in VS Code:
+
+- Create `.vscode/launch.json` with a `debugpy` configuration using `"module": "fara.run_fara"`
+- Set `"cwd": "${workspaceFolder}"` to ensure correct working directory
+- Pass arguments via `"args"` array: `--task`, `--endpoint_config`, `--downloads_folder`, `--save_screenshots`, `--headful`
+- Use `"justMyCode": false` to step into library code if needed
+- Press F5 or use "Run and Debug" panel to start debugging
+- Example screenshot below
+
+<img src="figures/debug_fara_agent.png" alt="VS Code Debug Configuration" width="600"/>
+
 ## Hosting the Model
 
 **Recommended:** The easiest way to get started is using Azure Foundry hosting, which requires no GPU hardware or model downloads. Alternatively, you can self-host with vLLM if you have GPU resources available.
