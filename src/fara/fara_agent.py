@@ -72,7 +72,7 @@ class FaraAgent:
         self.max_rounds = max_rounds
         self.max_url_chars = self.MAX_URL_LENGTH
         if save_screenshots and self.downloads_folder is None:
-            assert False, "downloads_folder must be set if save_screenshots is True"
+            raise ValueError("downloads_folder must be set if save_screenshots is True")
         self.save_screenshots = save_screenshots
         self._facts = []
         self._task_summary = None
@@ -303,6 +303,18 @@ class FaraAgent:
     def convert_resized_coords_to_original(
         self, coords: List[float], rsz_w: int, rsz_h: int, og_w: int, og_h: int
     ) -> List[float]:
+        """Convert coordinates from resized image to original image dimensions.
+
+        Args:
+            coords: [x, y] coordinates in the resized image space
+            rsz_w: Width of the resized image
+            rsz_h: Height of the resized image
+            og_w: Width of the original image
+            og_h: Height of the original image
+
+        Returns:
+            [x, y] coordinates scaled to the original image dimensions
+        """
         scale_x = og_w / rsz_w
         scale_y = og_h / rsz_h
         return [coords[0] * scale_x, coords[1] * scale_y]
