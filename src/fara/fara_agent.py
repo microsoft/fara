@@ -526,14 +526,16 @@ class FaraAgent:
             if "coordinate" in args:
                 tgt_x, tgt_y = args["coordinate"]
                 await self._playwright_controller.hover_coords(self._page, tgt_x, tgt_y)
-
         elif args["action"] == "sleep" or args["action"] == "wait":
             duration = args.get("duration", 3.0)
             duration = args.get("time", duration)
             action_description = (
-                "I am waiting a short period of time before taking further action."
+                f"I am waiting {duration} seconds before taking further action."
             )
             await self._playwright_controller.sleep(self._page, duration)
+        elif args["action"] == "refresh" or args["action"] == "reload":
+            action_description = "I refreshed the current page."
+            await self._playwright_controller.refresh(self._page)
         elif args["action"] == "click" or args["action"] == "left_click":
             if "coordinate" in args:
                 tgt_x, tgt_y = args["coordinate"]

@@ -33,6 +33,7 @@ Use a mouse and keyboard to interact with a computer, and take screenshots.
 * If a popup window appears that you want to close, if left_click() on the 'X' or close button doesn't work, try key(keys=['Escape']) to close it.
 * On some search bars, when you type(), you may need to press_enter=False and instead separately call left_click() on the search button to submit the search query. This is especially true of search bars that have auto-suggest popups for e.g. locations
 * For calendar widgets, you usually need to left_click() on arrows to move between months and left_click() on dates to select them; type() is not typically used to input dates there.
+* If asked to monitor a page for changes, you can use wait() to pause for a while and avoid busy-waiting. You may need to follow that with refresh() to see the latest content.
 """.strip()
 
     parameters = {
@@ -49,7 +50,8 @@ The action to perform. The available actions are:
 * `web_search`: Perform a web search with a specified query.
 * `history_back`: Go back to the previous page in the browser history.
 * `pause_and_memorize_fact`: Pause and memorize a fact for future reference.
-* `wait`: Wait specified seconds for the change to happen.
+* `wait`: Wait specified number of seconds (e.g., for a page to load or a change to happen).
+* `refresh`: Refresh the current webpage to update its content.
 * `terminate`: Terminate the current task and report its completion status.
 """.strip(),
                 "enum": [
@@ -63,6 +65,7 @@ The action to perform. The available actions are:
                     "history_back",
                     "pause_and_memorize_fact",
                     "wait",
+                    "refresh",
                     "terminate",
                 ],
                 "type": "string",
@@ -149,6 +152,8 @@ The action to perform. The available actions are:
             return self._open(params["text"])
         elif action == "wait":
             return self._wait(params["time"])
+        elif action == "refresh":
+            return self._refresh()
         elif action == "terminate":
             return self._terminate(params["status"])
         else:
@@ -176,6 +181,9 @@ The action to perform. The available actions are:
         raise NotImplementedError()
 
     def _wait(self, time: int):
+        raise NotImplementedError()
+
+    def _refresh(self):
         raise NotImplementedError()
 
     def _terminate(self, status: str):

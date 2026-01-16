@@ -336,6 +336,12 @@ class PlaywrightController:
         await page.go_back()
 
     @handle_target_closed()
+    async def refresh(self, page: Page) -> None:
+        await self._ensure_page_ready(page)
+        await page.reload()
+        await page.wait_for_load_state()
+
+    @handle_target_closed()
     async def visit_page(self, page: Page, url: str) -> Tuple[bool, bool]:
         await self._ensure_page_ready(page)
         reset_prior_metadata_hash = False
