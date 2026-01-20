@@ -33,6 +33,7 @@ Use a mouse and keyboard to interact with a computer, and take screenshots.
 * If a popup window appears that you want to close, if left_click() on the 'X' or close button doesn't work, try key(keys=['Escape']) to close it.
 * On some search bars, when you type(), you may need to press_enter=False and instead separately call left_click() on the search button to submit the search query. This is especially true of search bars that have auto-suggest popups for e.g. locations
 * For calendar widgets, you usually need to left_click() on arrows to move between months and left_click() on dates to select them; type() is not typically used to input dates there.
+* If asked to monitor a page for changes, you can use wait() to pause for a while and avoid busy-waiting. You may also need to follow that with key() to press F5 so that the page refreshes with the latest content.
 """.strip()
 
     parameters = {
@@ -40,7 +41,7 @@ Use a mouse and keyboard to interact with a computer, and take screenshots.
             "action": {
                 "description": """
 The action to perform. The available actions are:
-* `key`: Performs key down presses on the arguments passed in order, then performs key releases in reverse order. Includes "Enter", "Alt", "Shift", "Tab", "Control", "Backspace", "Delete", "Escape", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "PageDown", "PageUp", "Shift", etc.
+* `key`: Performs key down presses on the arguments passed in order, then performs key releases in reverse order. Includes "Enter", "Alt", "Shift", "Tab", "Control", "Backspace", "Delete", "Escape", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "PageDown", "PageUp", "Shift", "F5", etc.
 * `type`: Type a string of text on the keyboard.
 * `mouse_move`: Move the cursor to a specified (x, y) pixel coordinate on the screen.
 * `left_click`: Click the left mouse button.
