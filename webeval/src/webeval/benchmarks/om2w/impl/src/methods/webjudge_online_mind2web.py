@@ -128,7 +128,7 @@ The potentially important snapshots of the webpage in the agent's trajectory and
     try:
         key_points = key_points.split("**Key Points**:")[1]
         key_points = "\n".join(line.lstrip() for line in key_points.splitlines())
-    except:
+    except Exception:
         key_points = key_points.split("Key Points:")[-1]
         key_points = "\n".join(line.lstrip() for line in key_points.splitlines())
     

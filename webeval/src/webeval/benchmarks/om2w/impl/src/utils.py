@@ -26,7 +26,7 @@ def extract_predication(response, mode):
                 return 1
             else:
                 return 0
-        except:
+        except Exception:
             return 0
     elif mode == "AgentTrek_eval":
         try:
@@ -34,7 +34,7 @@ def extract_predication(response, mode):
                 return 1
             else:
                 return 0
-        except:
+        except Exception:
             return 0
     elif mode == "WebVoyager_eval":
         if "FAILURE" in response:
@@ -47,7 +47,7 @@ def extract_predication(response, mode):
                 return 1
             else:
                 return 0
-        except:
+        except Exception:
             return 0  
     elif mode == "WebJudge_general_eval":
         try:
@@ -55,7 +55,7 @@ def extract_predication(response, mode):
                 return 1
             else:
                 return 0
-        except:
+        except Exception:
             return 0      
     else:
         raise ValueError(f"Unknown mode: {mode}")
