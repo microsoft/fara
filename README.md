@@ -152,6 +152,8 @@ We are releasing **[WebTailBench](https://huggingface.co/datasets/microsoft/WebT
 
 #### WebTailBench Results (Process / Outcome)
 
+UPDATE: we release revised WebTailBench numbers from the new Universal Verifier below, reporting both process- and outcome-based success rate. Process sucess is defined by whether the assessed rubric score is at least 80%. 
+
 | Task Segment | Tasks | SoM GPT-5 | SoM o3 | SoM 4o | GLM-4.1V-9B | OAI Comp-Use | UI-TARS-1.5 | **Fara-7B** |
 |----------------|-------|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|
 | **Single-Site Tasks** |
