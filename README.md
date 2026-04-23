@@ -149,32 +149,30 @@ Fara-7B achieves state-of-the-art results across multiple web agent benchmarks, 
 
 We are releasing **[WebTailBench](https://huggingface.co/datasets/microsoft/WebTailBench)**, a new evaluation benchmark focusing on 11 real-world task types that are underrepresented or missing in existing benchmarks. The benchmark includes 609 tasks across diverse categories, with the first 8 segments testing single skills or objectives (usually on a single website), and the remaining 3 evaluating more difficult multi-step or cross-site tasks.
 
-#### WebTailBench Detailed Results
+#### WebTailBench Results (Process / Outcome)
 
-| Task Segment | Tasks | SoM GPT-4o-0513 | SoM o3-mini | SoM GPT-4o | GLM-4.1V-9B | OAI Comp-Use | UI-TARS-1.5 | **Fara-7B** |
-|--------------|-------|-----------------|-------------|------------|-------------|--------------|-------------|-------------|
+UPDATE: we release revised WebTailBench numbers from the new Universal Verifier below, reporting both process- and outcome-based success rate. Process sucess is defined by whether the assessed rubric score is at least 80%. 
+
+| Task Segment | Tasks | SoM GPT-5 | SoM o3 | SoM 4o | GLM-4.1V-9B | OAI Comp-Use | UI-TARS-1.5 | **Fara-7B** |
+|----------------|-------|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|
 | **Single-Site Tasks** |
-| Shopping | 56 | 62.5 | 71.4 | 38.1 | 31.0 | 42.3 | 41.1 | **52.4** |
-| Flights | 51 | 60.1 | 39.2 | 11.1 | 10.5 | 17.6 | 10.5 | **37.9** |
-| Hotels | 52 | 68.6 | 56.4 | 31.4 | 19.9 | 26.9 | 35.3 | **53.8** |
-| Restaurants | 52 | 67.9 | 59.6 | 47.4 | 32.1 | 35.9 | 22.4 | **47.4** |
-| Activities | 80 | 70.4 | 62.9 | 41.7 | 26.3 | 30.4 | 9.6 | **36.3** |
-| Ticketing | 57 | 58.5 | 56.7 | 37.4 | 35.7 | 49.7 | 30.4 | **38.6** |
-| Real Estate | 48 | 34.0 | 17.4 | 20.1 | 16.0 | 9.0 | 9.7 | **23.6** |
-| Jobs/Careers | 50 | 49.3 | 44.0 | 32.7 | 22.7 | 20.7 | 20.7 | **28.0** |
+| Shopping | 56 | 64.8 / 38.9 | 60.0 / 36.4 | 37.5 / 17.9 | 27.8 / 9.3 | 44.6 / 16.1 | 53.6 / 30.4 | **58.9 / 39.3** |
+| Flights | 51 | 51.1 / 27.7 | 23.4 / 8.5 | 3.9 / 2.0 | 6.1 / 0.0 | 17.6 / 7.8 | 5.9 / 2.0 | **44.0 / 30.0** |
+| Hotels | 52 | 84.6 / 23.1 | 54.9 / 15.7 | 32.7 / 9.6 | 21.2 / 5.8 | 32.7 / 13.5 | 28.8 / 5.8 | **51.9 / 32.7** |
+| Restaurants | 52 | 68.6 / 41.2 | 47.1 / 27.5 | 32.7 / 13.5 | 34.6 / 17.3 | 34.6 / 17.3 | 11.5 / 3.8 | **35.3 / 13.7** |
+| Activities | 80 | 71.2 / 43.8 | 55.1 / 37.2 | 27.5 / 15.0 | 32.9 / 13.9 | 40.0 / 22.5 | 8.8 / 5.0 | **36.0 / 16.0** |
+| Ticketing | 57 | 56.4 / 21.8 | 37.5 / 16.1 | 24.6 / 0.0 | 24.6 / 8.8 | 40.4 / 14.0 | 14.0 / 1.8 | **33.9 / 7.1** |
+| Real-Estate | 48 | 58.7 / 43.5 | 19.1 / 17.0 | 8.3 / 4.2 | 21.3 / 12.8 | 13.3 / 6.7 | 6.2 / 0.0 | **32.6 / 15.2** |
+| Jobs/Careers | 50 | 61.7 / 46.8 | 42.9 / 30.6 | 26.0 / 18.0 | 28.0 / 14.0 | 36.0 / 20.0 | 20.0 / 12.0 | **30.6 / 20.4** |
 | **Multi-Step Tasks** |
-| Shopping List (2 items) | 51 | 66.0 | 62.7 | 17.0 | 7.8 | 34.0 | 20.9 | **49.0** |
-| Comparison Shopping | 57 | 67.3 | 59.1 | 27.5 | 22.8 | 1.2 | 8.8 | **32.7** |
-| Compositional Tasks | 55 | 51.5 | 39.4 | 26.7 | 17.0 | 10.3 | 9.1 | **23.0** |
+| Shopping List (2 items) | 51 | 72.5 / 52.9 | 48.0 / 28.0 | 9.8 / 5.9 | 16.3 / 8.2 | 35.3 / 25.5 | 27.5 / 11.8 | **55.1 / 32.7** |
+| Comparison Shopping | 57 | 73.7 / 59.6 | 75.4 / 57.9 | 35.1 / 17.5 | 28.3 / 9.4 | 3.5 / 1.8 | 12.3 / 1.8 | **54.4 / 28.1** |
+| Compositional Tasks | 55 | 72.0 / 52.0 | 63.0 / 42.6 | 25.5 / 14.5 | 21.8 / 10.9 | 20.0 / 10.9 | 14.5 / 9.1 | **27.8 / 11.1** |
 | **Overall** |
-| Macro Average | 609 | 59.7 | 51.7 | 30.1 | 22.0 | 25.3 | 19.9 | **38.4** |
-| Micro Average | 609 | 60.4 | 52.7 | 30.8 | 22.4 | 25.7 | 19.5 | **38.4** |
+| Macro Average | 609 | 66.9 / 41.0 | 47.9 / 28.9 | 24.0 / 10.7 | 23.9 / 10.0 | 28.9 / 14.2 | 18.5 / 7.6 | **41.9 / 22.4** |
+| Micro Average | 609 | 67.3 / 41.2 | 48.9 / 29.7 | 24.5 / 11.0 | 24.5 / 10.2 | 29.5 / 14.5 | 18.2 / 7.6 | **41.8 / 22.2** |
 
-*Table: Breakdown of WebTailBench results across all 11 segments. Success rates (%) are averaged over 3 independent runs. Fara-7B achieves the highest performance among computer-use models across all task categories.*
-
-**Coming Soon:**
-- Task Verification pipeline for LLM-as-a-judge evaluation
-- Official human annotations of WebTailBench (in partnership with BrowserBase)
+*Each cell shows **Process / Outcome**. Process = Rubric Score ≥ 0.8 threshold; Outcome = task completion success.*
 
 ### CUAVerifierBench: Evaluating the Verifiers Themselves
 
