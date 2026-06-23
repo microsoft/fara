@@ -556,6 +556,13 @@ class PlaywrightController:
             keys (List[str]): List of keys to press
         """
         await self._ensure_page_ready(page)
+
+        # Special-case F5
+        if len(keys) == 1 and keys[0].lower() == "f5":
+            await page.reload()
+            await page.wait_for_load_state()
+            return
+
         mapped_keys = [CUA_KEY_TO_PLAYWRIGHT_KEY.get(key.lower(), key) for key in keys]
         try:
             for key in mapped_keys:
