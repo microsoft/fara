@@ -33,7 +33,7 @@ dependencies = [
     "torch==2.7.1",
     "torchvision==0.22.1",
     "torchaudio==2.7.1",
-    "transformers==4.53.3",
+    "transformers==5.0.0rc3",
     "backoff",
     "joblib",
     "mlflow",
