@@ -408,43 +408,74 @@ class PlaywrightEnvironment(BrowserEnvironment):
         await self._captcha_event.wait()
 
     async def close(self) -> None:
-        """Close the browser and cleanup."""
+        """Close all browser resources, including after a partial startup.
+
+        Each resource is attempted independently so an already-closed page does
+        not prevent the HTTP/browser transports later in the stack from being
+        shut down.  Clearing references before awaiting also makes this method
+        safe to call more than once.
+        """
         self.logger.info("Closing browser...")
 
-        if self._page:
-            await self._page.close()
-            self._page = None
+        page, self._page = self._page, None
+        if page:
+            try:
+                if not page.is_closed():
+                    await page.close()
+            except Exception as error:
+                self.logger.warning("Error closing browser page: %s", error)
 
-        if self._context:
-            await self._context.close()
-            self._context = None
+        context, self._context = self._context, None
+        if context:
+            try:
+                await context.close()
+            except Exception as error:
+                self.logger.warning("Error closing browser context: %s", error)
 
-        if self._browser:
+        browser, self._browser = self._browser, None
+        if browser:
             if self.config.use_browserbase and self._session and self._bb:
                 project_id = self.config.browserbase_project_id or os.environ.get(
                     "BROWSERBASE_PROJECT_ID"
                 )
                 session_id = self._session.id
-                browser_connected = self._browser.is_connected()
-                self._bb.sessions.update(
-                    self._session.id,
-                    status="REQUEST_RELEASE",
-                    project_id=project_id,
-                )
-                self.logger.info(
-                    f"[BB-END] task={self._task_id} session={session_id} "
-                    f"browser_connected_at_teardown={browser_connected}"
-                )
-                self._session = None
-            await self._browser.close()
-            self._browser = None
+                try:
+                    browser_connected = browser.is_connected()
+                    self._bb.sessions.update(
+                        self._session.id,
+                        status="REQUEST_RELEASE",
+                        project_id=project_id,
+                    )
+                    self.logger.info(
+                        f"[BB-END] task={self._task_id} session={session_id} "
+                        f"browser_connected_at_teardown={browser_connected}"
+                    )
+                except Exception as error:
+                    self.logger.warning(
+                        "Error releasing BrowserBase session %s: %s",
+                        session_id,
+                        error,
+                    )
+                finally:
+                    self._session = None
+            try:
+                if browser.is_connected():
+                    await browser.close()
+            except Exception as error:
+                self.logger.warning("Error closing browser: %s", error)
 
-        if self._playwright:
-            await self._playwright.stop()
-            self._playwright = None
+        playwright, self._playwright = self._playwright, None
+        if playwright:
+            try:
+                await playwright.stop()
+            except Exception as error:
+                self.logger.warning("Error stopping Playwright: %s", error)
 
         if not self.config.headless:
-            self._stop_xvfb()
+            try:
+                self._stop_xvfb()
+            except Exception as error:
+                self.logger.warning("Error stopping Xvfb: %s", error)
 
         self._initialized = False
 

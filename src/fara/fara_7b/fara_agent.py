@@ -600,4 +600,9 @@ class FaraAgent:
         """
         if self._page is not None:
             self._page = None
-        await self.browser_manager.close()
+        try:
+            if self._openai_client is not None:
+                await self._openai_client.close()
+        finally:
+            self._openai_client = None
+            await self.browser_manager.close()

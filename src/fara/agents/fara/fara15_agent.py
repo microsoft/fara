@@ -142,6 +142,7 @@ class Fara15Agent(Agent):
         self.config: Fara15AgentConfig
         self.logger = logging.getLogger(__name__)
         self._client: ChatCompletionClient | None = None
+        self._owns_client = False
         self._state: Fara15AgentState | None = None
         self._pending_observation: str = ""
         self._allowed_actions: frozenset[str] = frozenset()
@@ -171,8 +172,10 @@ class Fara15Agent(Agent):
 
         if self.config.client_config is not None:
             self._client = create_client_from_config(self.config.client_config)
+            self._owns_client = True
         elif self.config.client is not None:
             self._client = self.config.client
+            self._owns_client = False
         else:
             raise ValueError("Either client or client_config must be provided")
 
@@ -355,11 +358,20 @@ class Fara15Agent(Agent):
 
     async def close(self, run_context: RunContext) -> None:
         """Cleanup after the agent is done."""
+        client = self._client
+        owns_client = self._owns_client
         self._state = None
         self._client = None
+        self._owns_client = False
         self._captcha_timeouts = 0
         self._captcha_disabled = self.config.captcha_timeout_limit <= 0
-        await super().close(run_context)
+        try:
+            if owns_client and client is not None:
+                await client.close()
+        except Exception as error:
+            self.logger.warning("Error closing model client: %s", error)
+        finally:
+            await super().close(run_context)
 
     def _get_final_answer(self, thoughts: str, action_description: str) -> str:
         return action_description

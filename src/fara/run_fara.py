@@ -108,9 +108,9 @@ async def run_fara15_agent(
             run_context = RunContext.create(
                 environment=env, task=task, output_dir=output_dir
             )
-            await agent.initialize(run_context)
 
             try:
+                await agent.initialize(run_context)
                 print("Running Fara...\n")
                 final_answer, _, _ = await agent.run(run_context)
 
