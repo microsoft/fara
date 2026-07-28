@@ -50,3 +50,12 @@ class ChatCompletionClient:
             usage=usage,
             finish_reason=response.choices[0].finish_reason,
         )
+
+    async def close(self) -> None:
+        """Close the underlying HTTP client.
+
+        ``AsyncOpenAI`` owns an async httpx connection pool.  Leaving it for
+        garbage collection can make it try to close sockets after
+        ``asyncio.run`` has already closed the event loop.
+        """
+        await self._client.close()
