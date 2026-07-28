@@ -5,14 +5,18 @@ the model sees (identity + critical points + tool schema), and the
 DataPoint trajectory format.
 """
 
+import asyncio
 import json
 import logging
+from types import SimpleNamespace
 
+import pytest
 from PIL import Image
 
 from fara import DataPoint, Fara15Agent, Task
 from fara.agents.fara.fara15_agent import (
     Fara15AgentConfig,
+    Fara15AgentState,
     extract_allowed_actions,
 )
 from fara.agents.fara._prompts import (
@@ -25,6 +29,7 @@ from fara.core.data_point import (
     SolverStatus,
     ToolOutput,
 )
+from fara.clients.wrapper import extract_message_text
 
 BROWSER_ACTIONS = {
     "key",
@@ -108,7 +113,11 @@ def test_system_prompt_byte_identical_to_training():
         ensure_ascii=False,
     )
     template = (
-        FARA_QWEN35_IDENTITY + "\n\n" + CRITICAL_POINTS_FARA_1_5 + "\n\n" + FN_CALL_FORMAT
+        FARA_QWEN35_IDENTITY
+        + "\n\n"
+        + CRITICAL_POINTS_FARA_1_5
+        + "\n\n"
+        + FN_CALL_FORMAT
     )
     expected = template.format(tool_descs=tool_descs)
     assert _system_text(_make_agent()) == expected
@@ -136,10 +145,106 @@ def test_parse_thoughts_and_action():
     assert action["arguments"]["action"] == "left_click"
 
 
+@pytest.mark.parametrize(
+    "message",
+    [
+        '<tool_call>{"name":"computer_use","arguments":{"action":"wait"}}</tool_call>',
+        '<tool_call>\n```json\n{"name":"computer_use","arguments":{"action":"wait"}}\n```\n</tool_call>',
+        '{"name":"computer_use","arguments":{"action":"wait"}}',
+        "<tool_call>{'name': 'computer_use', 'arguments': {'action': 'wait'}}</tool_call>",
+    ],
+)
+def test_parse_thoughts_and_action_accepts_common_server_variants(message):
+    agent = _make_agent()
+    _, action = agent._parse_thoughts_and_action(message)
+    assert action == {"name": "computer_use", "arguments": {"action": "wait"}}
+
+
+@pytest.mark.parametrize(
+    ("message", "error_text"),
+    [
+        ("", "empty response"),
+        ("I forgot to call a tool", "no <tool_call> tag or JSON object"),
+        ('<tool_call>{"name":"computer_use"}</tool_call>', "'arguments' object"),
+    ],
+)
+def test_parse_thoughts_and_action_reports_useful_errors(message, error_text):
+    agent = _make_agent()
+    with pytest.raises(ValueError, match=error_text):
+        agent._parse_thoughts_and_action(message)
+
+
+def test_generate_model_call_retries_an_empty_response():
+    agent = _make_agent()
+    agent._state = Fara15AgentState(mlm_width=1440, mlm_height=900)
+    responses = iter(
+        [
+            "",
+            '<tool_call>{"name":"computer_use","arguments":{"action":"wait"}}</tool_call>',
+        ]
+    )
+    call_count = 0
+
+    async def fake_model_call(history, extra_create_args=None):
+        nonlocal call_count
+        call_count += 1
+        return next(responses)
+
+    agent._make_model_call = fake_model_call
+    function_call, _ = asyncio.run(
+        agent._generate_model_call(
+            env=None,
+            is_first_round=True,
+            first_screenshot=Image.new("RGB", (1440, 900)),
+        )
+    )
+
+    assert call_count == 2
+    assert function_call[0].arguments["action"] == "wait"
+    assert any(
+        "previous response could not be parsed" in message.content
+        for message in agent._state.chat_history
+    )
+
+
+def test_extract_message_text_accepts_reasoning_content():
+    message = SimpleNamespace(
+        content="",
+        model_extra={
+            "reasoning_content": (
+                '<tool_call>{"name":"computer_use",'
+                '"arguments":{"action":"wait"}}</tool_call>'
+            )
+        },
+        tool_calls=None,
+    )
+    assert extract_message_text(message).startswith("<tool_call>")
+
+
+def test_extract_message_text_normalizes_native_tool_calls():
+    message = SimpleNamespace(
+        content=None,
+        model_extra={},
+        tool_calls=[
+            SimpleNamespace(
+                function=SimpleNamespace(
+                    name="computer_use", arguments='{"action":"wait"}'
+                )
+            )
+        ],
+    )
+    text = extract_message_text(message)
+    agent = _make_agent()
+    _, action = agent._parse_thoughts_and_action(text)
+    assert action["arguments"]["action"] == "wait"
+
+
 def test_data_point_roundtrip(tmp_path):
     dp = DataPoint(task=Task(task_id="t1", instruction="find a hotel"))
     dp.solver_log.add_observation(
-        ComputerObservation(screenshot_path="screenshot_1_pre.png", url="https://bing.com")
+        ComputerObservation(
+            screenshot_path="screenshot_1_pre.png", url="https://bing.com"
+        )
     )
     action = Action(
         action_name="left_click",
