@@ -30,7 +30,7 @@ from tenacity import (
 )
 
 from ._prompts import get_computer_use_system_prompt
-from ...clients.wrapper import ChatCompletionClient
+from ...clients.wrapper import ChatCompletionClient, extract_message_text
 from ...clients.create_utils import create_client_from_config
 from ...clients.messages import (
     LLMMessage,
@@ -103,6 +103,7 @@ class Fara15AgentConfig(AgentConfig):
     captcha_timeout_limit: int = 2
     raise_on_captcha_timeout: bool = True
     terminate_on_parse_error: bool = False
+    max_parse_retries: int = 2
     image_token_estimate: int = 1500
     image_budget_token_cap: int = 0
 
@@ -438,33 +439,77 @@ class Fara15Agent(Agent):
         return system_message, scaled_screenshot
 
     def _parse_thoughts_and_action(self, message: str) -> Tuple[str, Dict[str, Any]]:
+        """Parse a model response without depending on exact whitespace.
+
+        The training format uses ``<tool_call>`` tags, but OpenAI-compatible
+        servers sometimes remove a newline, add a Markdown fence, or return the
+        JSON object without the tags.  All of those forms are accepted here.
+        """
         try:
-            tmp = message.split("<tool_call>\n")
-            thoughts = tmp[0].strip()
-            action_text = tmp[1].split("\n</tool_call>")[0]
+            if not isinstance(message, str) or not message.strip():
+                raise ValueError("the model returned an empty response")
+
+            opening_tag = re.search(r"<tool_call\b[^>]*>", message, re.IGNORECASE)
+            if opening_tag:
+                thoughts = message[: opening_tag.start()].strip()
+                action_text = message[opening_tag.end() :]
+                closing_tag = re.search(r"</tool_call\s*>", action_text, re.IGNORECASE)
+                if closing_tag:
+                    action_text = action_text[: closing_tag.start()]
+            else:
+                # Be liberal with servers that return a bare/fenced object.
+                object_start = message.find("{")
+                if object_start < 0:
+                    raise ValueError("no <tool_call> tag or JSON object was found")
+                thoughts = message[:object_start].strip()
+                action_text = message[object_start:]
+
+            action_text = action_text.strip()
+            if action_text.startswith("```"):
+                action_text = re.sub(
+                    r"^```(?:json|python)?\s*",
+                    "",
+                    action_text,
+                    count=1,
+                    flags=re.IGNORECASE,
+                )
+                action_text = re.sub(r"\s*```\s*$", "", action_text, count=1)
+
             try:
-                action = json.loads(action_text)
-            except json.decoder.JSONDecodeError:
-                self.logger.error(f"Invalid action text: {action_text}")
-                action = ast.literal_eval(action_text)
+                action, _ = json.JSONDecoder().raw_decode(action_text.lstrip())
+            except json.decoder.JSONDecodeError as json_error:
+                try:
+                    action = ast.literal_eval(action_text)
+                except (SyntaxError, ValueError) as literal_error:
+                    raise ValueError(
+                        f"tool call is not valid JSON: {json_error.msg}"
+                    ) from literal_error
+
+            if not isinstance(action, dict):
+                raise ValueError("tool call must be a JSON object")
+            if not isinstance(action.get("name"), str) or not action["name"]:
+                raise ValueError("tool call is missing a non-empty 'name'")
+            if not isinstance(action.get("arguments"), dict):
+                raise ValueError("tool call is missing an 'arguments' object")
+            if not isinstance(action["arguments"].get("action"), str):
+                raise ValueError("tool call arguments are missing a string 'action'")
             return thoughts, action
-        except Exception as e:
-            self.logger.error(
-                f"Error parsing thoughts and action: {message}", exc_info=True
-            )
+        except (TypeError, ValueError) as error:
             if self.config.terminate_on_parse_error:
                 self.logger.warning(
-                    "terminate_on_parse_error=true: ending trajectory with raw "
-                    "model response as final answer"
+                    "Could not parse model response (%s); ending trajectory because "
+                    "terminate_on_parse_error=true",
+                    error,
                 )
-                return message.strip(), {
+                raw_message = message.strip() if isinstance(message, str) else ""
+                return raw_message, {
                     "name": "computer_use",
                     "arguments": {
                         "action": "terminate",
-                        "answer": message.strip(),
+                        "answer": raw_message,
                     },
                 }
-            raise e
+            raise ValueError(f"Could not parse model tool call: {error}") from error
 
     def convert_resized_coords_to_original(
         self, coords: List[float], rsz_w: int, rsz_h: int, og_w: int, og_h: int
@@ -523,7 +568,7 @@ class Fara15Agent(Agent):
             messages=history,
             extra_create_args=extra_create_args or {},
         )
-        return result.content.content
+        return extract_message_text(result.content)
 
     def remove_screenshot_from_message(self, msg: LLMMessage) -> LLMMessage | None:
         """Remove the screenshot from the message content."""
@@ -667,10 +712,36 @@ class Fara15Agent(Agent):
         call_args: dict[str, Any] = {"temperature": 0}
         if self.config.extra_create_args:
             call_args.update(self.config.extra_create_args)
-        message = await self._make_model_call(history, extra_create_args=call_args)
+        max_attempts = max(1, self.config.max_parse_retries + 1)
+        for attempt in range(1, max_attempts + 1):
+            message = await self._make_model_call(history, extra_create_args=call_args)
+            assistant_message = AssistantMessage(content=message or "")
+            self._state.chat_history.append(assistant_message)
+            try:
+                thoughts, action = self._parse_thoughts_and_action(message)
+                break
+            except ValueError as error:
+                if attempt == max_attempts:
+                    raise ValueError(
+                        f"Model returned an invalid tool call after {max_attempts} "
+                        f"attempts: {error}"
+                    ) from error
+                self.logger.warning(
+                    "Invalid model tool call (attempt %d/%d): %s; retrying",
+                    attempt,
+                    max_attempts,
+                    error,
+                )
+                correction = UserMessage(
+                    content=(
+                        "Your previous response could not be parsed. Reply with exactly "
+                        "one valid JSON tool call inside <tool_call> and </tool_call> "
+                        "tags, following the provided tool schema."
+                    )
+                )
+                self._state.chat_history.append(correction)
+                history.extend([assistant_message, correction])
 
-        self._state.chat_history.append(AssistantMessage(content=message))
-        thoughts, action = self._parse_thoughts_and_action(message)
         action["arguments"]["thoughts"] = thoughts
         function_call = [FunctionCall(id="dummy", **action)]
         return function_call, message

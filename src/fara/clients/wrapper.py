@@ -7,11 +7,93 @@ extra_create_args)`` interface the Fara agents expect, returning a
 (``.content.content`` is the text).
 """
 
+import json
 from typing import Any, Dict, List
 
 from openai import AsyncOpenAI
 
 from .messages import CreateResult, LLMMessage, RequestUsage, message_to_openai_format
+
+
+def _text_value(value: Any) -> str:
+    """Flatten the text-like content variants used by compatible servers."""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, list):
+        parts = [_text_value(item) for item in value]
+        return "\n".join(part for part in parts if part)
+    if isinstance(value, dict):
+        for key in ("text", "content", "value"):
+            if key in value:
+                return _text_value(value[key])
+        return ""
+    for attribute in ("text", "content", "value"):
+        nested = getattr(value, attribute, None)
+        if nested is not None and nested is not value:
+            return _text_value(nested)
+    return ""
+
+
+def extract_message_text(message: Any) -> str:
+    """Get generated text from an OpenAI or OpenAI-compatible message.
+
+    Some reasoning servers put the entire generated response in a non-standard
+    reasoning field and leave ``content`` empty.  Native function calls are
+    normalized back into the textual format expected by Fara's trained parser.
+    """
+    if isinstance(message, str):
+        return message
+
+    values: list[str] = []
+    standard_content = _text_value(getattr(message, "content", None)).strip()
+
+    extras = getattr(message, "model_extra", None) or {}
+    for field_name in ("reasoning_content", "reasoning", "analysis"):
+        value = getattr(message, field_name, None)
+        if value is None and isinstance(extras, dict):
+            value = extras.get(field_name)
+        text = _text_value(value).strip()
+        if text and text not in values:
+            values.append(text)
+
+    if standard_content and standard_content not in values:
+        values.append(standard_content)
+
+    tool_calls = getattr(message, "tool_calls", None) or []
+    for tool_call in tool_calls:
+        function = getattr(tool_call, "function", None)
+        if function is None and isinstance(tool_call, dict):
+            function = tool_call.get("function")
+        name = (
+            function.get("name")
+            if isinstance(function, dict)
+            else getattr(function, "name", None)
+        )
+        arguments = (
+            function.get("arguments")
+            if isinstance(function, dict)
+            else getattr(function, "arguments", None)
+        )
+        if not name:
+            continue
+        if isinstance(arguments, str):
+            try:
+                arguments = json.loads(arguments)
+            except json.JSONDecodeError:
+                # Keep malformed arguments visible to the normal parser, which
+                # will produce a useful error and trigger its bounded retry.
+                tool_text = (
+                    f'<tool_call>{{"name": {json.dumps(name)}, '
+                    f'"arguments": {arguments}}}</tool_call>'
+                )
+                values.append(tool_text)
+                continue
+        tool_text = json.dumps(
+            {"name": name, "arguments": arguments or {}}, ensure_ascii=False
+        )
+        values.append(f"<tool_call>{tool_text}</tool_call>")
+
+    return "\n".join(values)
 
 
 class ChatCompletionClient:
