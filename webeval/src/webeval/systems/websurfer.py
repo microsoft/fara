@@ -9,7 +9,7 @@ from logging import Logger
 from typing import Any, Dict, List, Optional, Union
 
 from fara import FaraAgent
-from fara.browser.browser_bb import BrowserBB
+from fara.fara_7b.browser.browser_bb import BrowserBB
 
 from webeval.basesystem import BaseSystem
 from webeval.trajectory import FinalAnswer, Trajectory
