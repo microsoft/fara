@@ -91,6 +91,36 @@ Then you can iteratively query it with:
 fara-cli --task "whats the weather in new york now" --endpoint_config azure_foundry_config.json
 ```
 
+### Run Fara on Browser Use Cloud
+
+Fara can connect to any existing Chromium browser over CDP. To run it on a
+managed Browser Use Cloud browser, create a browser, give its CDP URL to Fara,
+then stop the browser when Fara exits:
+
+```bash
+export BROWSER_USE_API_KEY=bu_your_key_here
+
+browser=$(curl -sS https://api.browser-use.com/api/v4/browsers \
+  -H "X-Browser-Use-API-Key: $BROWSER_USE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"proxyCountryCode":"us"}')
+
+export FARA_BROWSER_ID=$(echo "$browser" | jq -r .id)
+export FARA_CDP_URL=$(echo "$browser" | jq -r .cdpUrl)
+
+fara-cli --task "whats the weather in new york now" \
+  --endpoint_config azure_foundry_config.json
+
+curl -sS -X PATCH \
+  "https://api.browser-use.com/api/v4/browsers/$FARA_BROWSER_ID" \
+  -H "X-Browser-Use-API-Key: $BROWSER_USE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"action":"stop"}'
+```
+
+`--cdp_url` overrides `FARA_CDP_URL`. The same connection works with Fara1.5
+and the previous Fara-7B runner.
+
 To try Fara inside Magentic-UI — a sandboxed browser environment with auditable action logging and user prompts at critical points — follow the instructions in the [Magentic-UI repo](https://github.com/microsoft/magentic-ui). You will need a model endpoint as before, but instead of fara-cli you can use Magentic-UI which has a nice UI (see video demos below).
 
 Note: If you're using Windows, we highly recommend using WSL2 (Windows Subsystem for Linux). Please see the Windows instructions in the [Installation](#installation) section.

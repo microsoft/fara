@@ -46,6 +46,7 @@ class PlaywrightEnvironmentConfig(BrowserEnvironmentConfig):
     single_tab_mode: bool = True
     default_timeout: int = 60000
     page_script_path: str | None = None
+    cdp_url: str | None = None
     use_browserbase: bool = False
     browserbase_project_id: str | None = None
     browserbase_api_key: str | None = None
@@ -56,7 +57,7 @@ class PlaywrightEnvironment(BrowserEnvironment):
     """Browser environment using Playwright.
 
     Supports regular Chromium/Firefox/WebKit, persistent browser contexts,
-    and BrowserBase cloud sessions.
+    remote Chromium browsers over CDP, and BrowserBase cloud sessions.
     """
 
     os_type = OSType.LINUX
@@ -133,7 +134,10 @@ class PlaywrightEnvironment(BrowserEnvironment):
             logger=self.logger,
         )
 
-        if self.config.use_browserbase:
+        if self.config.cdp_url:
+            await self._init_remote_browser()
+            await self._setup_browser()
+        elif self.config.use_browserbase:
             await self._init_browserbase()
         elif self.config.browser_data_dir:
             await self._init_persistent_browser()
@@ -166,6 +170,21 @@ class PlaywrightEnvironment(BrowserEnvironment):
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0"
         )
         self._page = await self._context.new_page()
+
+    async def _init_remote_browser(self) -> None:
+        """Connect to an existing Chromium browser over CDP."""
+        cdp_url = self.config.cdp_url
+        if not cdp_url:
+            raise ValueError("A CDP URL is required for a remote browser")
+        self._browser = await self._playwright.chromium.connect_over_cdp(cdp_url)
+        if not self._browser.contexts:
+            raise RuntimeError("The remote CDP browser has no browser context")
+        self._context = self._browser.contexts[0]
+        self._page = (
+            self._context.pages[0]
+            if self._context.pages
+            else await self._context.new_page()
+        )
 
     _BROWSERBASE_MAX_ATTEMPTS = 5
     _BROWSERBASE_RATE_LIMIT_BACKOFF_S = 10
@@ -452,7 +471,6 @@ class PlaywrightEnvironment(BrowserEnvironment):
         """Get screenshot of current page."""
         return await self.get_screenshot()
 
-
     async def left_click(self, x: int, y: int) -> None:
         new_page = await self._controller.click_coords(self._page, x, y)
         if new_page is not None:
@@ -501,7 +519,6 @@ class PlaywrightEnvironment(BrowserEnvironment):
         """Capture a screenshot of the current page."""
         return await self._controller.get_screenshot(self._page, path=path)
 
-
     async def goto_url(self, url: str) -> None:
         await self._controller.visit_page(self._page, url)
 
@@ -510,7 +527,6 @@ class PlaywrightEnvironment(BrowserEnvironment):
 
     async def refresh(self) -> None:
         await self._page.reload(wait_until="commit")
-
 
     async def middle_click(self, x: int, y: int) -> None:
         await self._page.mouse.click(x, y, button="middle")
@@ -533,7 +549,6 @@ class PlaywrightEnvironment(BrowserEnvironment):
     async def hscroll(self, pixels: int) -> None:
         """Horizontal scroll. Positive=right, negative=left."""
         await self._page.mouse.wheel(pixels, 0)
-
 
     async def click(self, x: float, y: float) -> Dict[str, Any]:
         """Click at coordinates."""
@@ -574,7 +589,6 @@ class PlaywrightEnvironment(BrowserEnvironment):
         """Scroll up the page."""
         await self._controller.page_up(self._page, amount=amount)
         return {"success": True}
-
 
     async def click_id(self, identifier: str) -> Dict[str, Any]:
         """Click on an element by its identifier."""

@@ -53,6 +53,7 @@ async def run_fara15_agent(
     output_folder: str = None,
     save_screenshots: bool = True,
     max_rounds: int = 100,
+    cdp_url: str | None = None,
     use_browser_base: bool = False,
 ) -> None:
     """Interactive loop for the Fara-1.5 agent."""
@@ -66,6 +67,7 @@ async def run_fara15_agent(
         browser_channel="chromium",
         start_page=start_page,
         single_tab_mode=True,
+        cdp_url=cdp_url,
         use_browserbase=use_browser_base,
     )
     await env.initialize()
@@ -114,9 +116,7 @@ async def run_fara15_agent(
                 print("Running Fara...\n")
                 final_answer, _, _ = await agent.run(run_context)
 
-                while (
-                    run_context.solver_log.status == SolverStatus.WAITING_FOR_USER
-                ):
+                while run_context.solver_log.status == SolverStatus.WAITING_FOR_USER:
                     print(f"\nFara asks: {final_answer}")
                     reply = input("Your response (Enter to abandon): ").strip()
                     if not reply:
@@ -151,6 +151,7 @@ async def run_fara7b_agent(
     downloads_folder: str = None,
     save_screenshots: bool = True,
     max_rounds: int = 100,
+    cdp_url: str | None = None,
     use_browser_base: bool = False,
 ) -> None:
     """Interactive loop for the previous-generation Fara-7B agent."""
@@ -166,6 +167,7 @@ async def run_fara7b_agent(
         to_resize_viewport=True,
         single_tab_mode=True,
         animate_actions=False,
+        cdp_url=cdp_url,
         use_browser_base=use_browser_base,
         logger=logger,
     )
@@ -249,6 +251,12 @@ def main():
         help="Maximum number of rounds for the agent to run",
     )
     parser.add_argument(
+        "--cdp_url",
+        type=str,
+        default=os.environ.get("FARA_CDP_URL"),
+        help="Connect to an existing Chromium browser over CDP (defaults to FARA_CDP_URL)",
+    )
+    parser.add_argument(
         "--browserbase",
         action="store_true",
         help="Whether to use BrowserBase for browser management",
@@ -286,6 +294,9 @@ def main():
 
     args = parser.parse_args()
 
+    if args.browserbase and args.cdp_url:
+        parser.error("--browserbase and --cdp_url cannot be used together")
+
     if args.browserbase:
         assert os.environ.get(
             "BROWSERBASE_API_KEY"
@@ -322,6 +333,7 @@ def main():
                 downloads_folder=args.output_folder,
                 save_screenshots=args.save_screenshots,
                 max_rounds=args.max_rounds,
+                cdp_url=args.cdp_url,
                 use_browser_base=args.browserbase,
             )
         )
@@ -335,6 +347,7 @@ def main():
                 output_folder=args.output_folder,
                 save_screenshots=args.save_screenshots,
                 max_rounds=args.max_rounds,
+                cdp_url=args.cdp_url,
                 use_browser_base=args.browserbase,
             )
         )
