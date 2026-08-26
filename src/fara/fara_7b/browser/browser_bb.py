@@ -35,6 +35,7 @@ class BrowserBB:
         to_resize_viewport: bool = True,
         single_tab_mode: bool = True,
         animate_actions: bool = False,
+        cdp_url: str | None = None,
         use_browser_base: bool = False,
         logger: Optional[logging.Logger] = None,
     ):
@@ -46,6 +47,7 @@ class BrowserBB:
         self.to_resize_viewport = to_resize_viewport
         self.animate_actions = animate_actions
         self.single_tab_mode = single_tab_mode
+        self.cdp_url = cdp_url
         self.use_browser_base = use_browser_base
         self.logger = logger or logging.getLogger("browser_manager")
         self.is_linux = platform.system() == "Linux"
@@ -123,7 +125,9 @@ class BrowserBB:
         self._playwright = await async_playwright().start()
         self.shared_data_point = shared_data_point
 
-        if self.use_browser_base:
+        if self.cdp_url:
+            await self._init_remote_browser()
+        elif self.use_browser_base:
             await self._init_browser_base(self.shared_data_point)
         elif self.browser_data_dir is None:
             await self._init_regular_browser(channel=self.browser_channel)
@@ -191,6 +195,20 @@ class BrowserBB:
 
         self._context.on("console", handle_console)
         self._page.on("console", handle_console)
+
+    async def _init_remote_browser(self) -> None:
+        """Connect to an existing Chromium browser over CDP."""
+        if not self.cdp_url:
+            raise ValueError("A CDP URL is required for a remote browser")
+        self.browser = await self._playwright.chromium.connect_over_cdp(self.cdp_url)
+        if not self.browser.contexts:
+            raise RuntimeError("The remote CDP browser has no browser context")
+        self._context = self.browser.contexts[0]
+        self._page = (
+            self._context.pages[0]
+            if self._context.pages
+            else await self._context.new_page()
+        )
 
     async def _init_regular_browser(self, channel: str = "chromium") -> None:
         """Initialize regular browser according to the specified channel."""
