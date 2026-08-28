@@ -14,6 +14,7 @@ from .wrapper import (
     AzureOpenAIResponsesWrapper,
     ChatCompletionClient,
     OpenAIClientWrapper,
+    OrcaRouterClientWrapper,
 )
 
 ENVIRON_KEY_CHAT_COMPLETION_PROVIDER = "CHAT_COMPLETION_PROVIDER"
@@ -32,8 +33,8 @@ def create_completion_client_from_env(
 ) -> ChatCompletionClient:
     """Construct a client from a config dict.
 
-    The dict must contain ``CHAT_COMPLETION_PROVIDER`` ("openai", "azure",
-    "trapi", "azure_ml", or "graceful_retry") and
+    The dict must contain ``CHAT_COMPLETION_PROVIDER`` ("openai",
+    "orcarouter", "azure", "trapi", "azure_ml", or "graceful_retry") and
     ``CHAT_COMPLETION_KWARGS_JSON`` (the kwargs forwarded to the
     underlying SDK client constructor).
     """
@@ -50,6 +51,9 @@ def create_completion_client_from_env(
     if _provider == "openai":
         _kwargs.pop("proxies", None)
         return OpenAIClientWrapper(**_kwargs)
+    if _provider == "orcarouter":
+        _kwargs.pop("proxies", None)
+        return OrcaRouterClientWrapper(**_kwargs)
     if _provider in ("azure", "trapi"):
         model = _kwargs.get("model", _kwargs.get("azure_deployment", ""))
         if "codex" in model or "o3-pro" in model or use_responses_api:
