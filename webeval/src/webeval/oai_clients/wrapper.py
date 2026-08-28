@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import os
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Union
 
@@ -291,6 +292,25 @@ class OpenAIClientWrapper(ChatCompletionClient):
             message=msg,
             tool_calls=list(msg.tool_calls) if getattr(msg, "tool_calls", None) else None,
         )
+
+
+class OrcaRouterClientWrapper(OpenAIClientWrapper):
+    """OpenAI-compatible client for the OrcaRouter gateway.
+
+    OrcaRouter exposes many upstream models behind a single OpenAI-compatible
+    endpoint (``https://api.orcarouter.ai/v1``) using ``vendor/model`` names,
+    plus adaptive routing via ``orcarouter/auto``. When no ``base_url`` or
+    ``api_key`` is supplied, it defaults to the public endpoint and the
+    ``ORCAROUTER_API_KEY`` environment variable.
+    """
+
+    DEFAULT_BASE_URL = "https://api.orcarouter.ai/v1"
+
+    def __init__(self, **kwargs):
+        kwargs.setdefault("base_url", self.DEFAULT_BASE_URL)
+        kwargs.setdefault("api_key", os.environ.get("ORCAROUTER_API_KEY"))
+        super().__init__(**kwargs)
+        self.metadata = {"model": self.model, "provider": "orcarouter"}
 
 
 class AzureOpenAIClientWrapper(ChatCompletionClient):

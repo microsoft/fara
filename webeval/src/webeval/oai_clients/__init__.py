@@ -1,4 +1,4 @@
-"""Chat completion clients used by webeval (OpenAI / Azure OpenAI / Azure ML)."""
+"""Chat completion clients used by webeval (OpenAI / OrcaRouter / Azure OpenAI / Azure ML)."""
 
 from .create_utils import (
     ENVIRON_KEY_CHAT_COMPLETION_KWARGS_JSON,
@@ -32,6 +32,7 @@ from .wrapper import (
     ClientWrapper,
     ModelCapabilities,
     OpenAIClientWrapper,
+    OrcaRouterClientWrapper,
 )
 
 __all__ = [
@@ -50,6 +51,7 @@ __all__ = [
     "LLMMessage",
     "ModelCapabilities",
     "OpenAIClientWrapper",
+    "OrcaRouterClientWrapper",
     "RequestUsage",
     "ResponsesGracefulRetryClient",
     "SystemMessage",

@@ -269,6 +269,48 @@ def test_openai_wrapper_create_round_trip(monkeypatch):
     assert captured["kwargs"]["model"] == "gpt-4o"
 
 
+def test_orcarouter_provider_round_trip(monkeypatch):
+    """The ``orcarouter`` provider resolves to an OpenAI-compatible client
+    pointed at the OrcaRouter gateway and marks itself as orcarouter."""
+    from webeval.oai_clients import (
+        ChatCompletionClient,
+        OrcaRouterClientWrapper,
+        UserMessage,
+        create_client_from_config,
+    )
+
+    captured = {}
+
+    async def fake_chat_create(**kwargs):
+        captured["kwargs"] = kwargs
+        message = SimpleNamespace(content="hello from orca", tool_calls=None)
+        choice = SimpleNamespace(message=message, finish_reason="stop")
+        usage = SimpleNamespace(
+            prompt_tokens=7,
+            completion_tokens=2,
+            completion_tokens_details=None,
+        )
+        return SimpleNamespace(choices=[choice], usage=usage)
+
+    client = create_client_from_config(
+        {
+            "CHAT_COMPLETION_PROVIDER": "orcarouter",
+            "CHAT_COMPLETION_KWARGS_JSON": {"model": "openai/gpt-4o"},
+        }
+    )
+    assert isinstance(client, OrcaRouterClientWrapper)
+    assert isinstance(client, ChatCompletionClient)
+    assert client.metadata["provider"] == "orcarouter"
+    assert str(client.client.base_url).rstrip("/") == "https://api.orcarouter.ai/v1"
+
+    monkeypatch.setattr(
+        client.client.chat.completions, "create", fake_chat_create, raising=True
+    )
+    result = asyncio.run(client.create(messages=[UserMessage(content="ping")]))
+    assert result.content == "hello from orca"
+    assert captured["kwargs"]["model"] == "openai/gpt-4o"
+
+
 def test_client_wrapper_from_config_returns_chat_client(monkeypatch):
     """Backwards-compat alias for callers that still use ``ClientWrapper.from_config``."""
     from webeval.oai_clients import ChatCompletionClient, ClientWrapper
