@@ -158,7 +158,7 @@ class WebSurferSystem(BaseSystem):
                     start_page=start_page,
                     downloads_folder=output_dir,
                     save_screenshots=True,
-                    max_rounds=100,
+                    max_rounds=self.max_rounds,
                     logger = logger
                 )
 
