@@ -312,6 +312,10 @@ If you have access to GPU resources, you can download the model weights from [Hu
 vllm serve <model> --port 5000 --dtype auto
 ```
 
+#### llama.cpp response-format troubleshooting
+
+The reporter in [issue #82](https://github.com/microsoft/fara/issues/82) found that their Fara1.5 `llama-server` setup returned the generated `<tool_call>` in `reasoning_content`, leaving `message.content` empty. They reported that adding `--reasoning-format none` restored parsing by the current Fara1.5 client. Keep the model and any vision-projector settings required by your existing setup; this note records the response-format workaround, not a validated end-to-end GGUF or hardware setup.
+
 The previous-generation [Fara-7B](https://huggingface.co/microsoft/Fara-7b) weights remain available on Hugging Face (with [GGUF variants](https://huggingface.co/bartowski/microsoft_Fara-7B-GGUF) for LM Studio / Ollama). Pass `--fara-7b` to run the Fara-7B agent instead of Fara1.5:
 
 ```bash
@@ -326,7 +330,7 @@ Runs save a full trajectory — per-step screenshots and a `data_point.json` (ta
 
 Instructions to reproduce our benchmark results (WebVoyager, Online-Mind2Web, WebTailBench) with the `webeval/` framework — including installation, the per-benchmark CLIs, BrowserBase setup, and result analysis — live in [`docs/eval_reproducibility.md`](docs/eval_reproducibility.md).
 
-> **Note:** the webeval pipeline documented there produced the previous-generation (Fara-7B) numbers and is being updated for the Fara1.5 evaluation stack.
+> **Fara1.5:** Do not use the legacy `webeval/` pipeline for Fara1.5 Online-Mind2Web evaluation. Use the harness in [`src/fara`](src/fara) with your own OM2W evaluation code, as clarified by a maintainer in [issue #90](https://github.com/microsoft/fara/issues/90#issuecomment-5734319360). The instructions linked above produced the previous-generation Fara-7B numbers.
 
 ## Citation
 
