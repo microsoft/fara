@@ -322,6 +322,10 @@ If you didn't use vLLM to host, specify `--base_url [your_base_url] --api_key [y
 
 Runs save a full trajectory — per-step screenshots and a `data_point.json` (task, actions, observations, and outcome) — to the folder passed via `--output_folder`.
 
+#### llama.cpp response-format troubleshooting
+
+We recommend using vLLM for self-hosting. However, if using llama.cpp, [issue #82](https://github.com/microsoft/fara/issues/82) found that it was necessary to pass `--reasoning-format none` to the `llama-server` command. Otherwise, the model's output may not be returned to our harness correctly and the `message.content` can be empty. If you encounter empty message content, then please try this workaround.
+
 ## Reproducibility
 
 Instructions to reproduce our benchmark results (WebVoyager, Online-Mind2Web, WebTailBench) with the `webeval/` framework — including installation, the per-benchmark CLIs, BrowserBase setup, and result analysis — live in [`docs/eval_reproducibility.md`](docs/eval_reproducibility.md).
