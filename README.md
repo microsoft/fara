@@ -322,6 +322,34 @@ If you didn't use vLLM to host, specify `--base_url [your_base_url] --api_key [y
 
 Runs save a full trajectory — per-step screenshots and a `data_point.json` (task, actions, observations, and outcome) — to the folder passed via `--output_folder`.
 
+### Optional Parallel web search (Fara1.5)
+
+Fara1.5 uses browser-based Bing search by default. To use
+[Parallel Search MCP](https://docs.parallel.ai/integrations/mcp/search-mcp)
+for free web search with source URLs and excerpts, install the search extra and
+select it explicitly:
+
+```bash
+pip install -e '.[search]'
+fara-cli --task "Find recent research on computer use agents" \
+  --endpoint_config azure_foundry_config.json --search_provider parallel
+```
+
+Parallel search uses Fast mode without an account or API key. The existing
+`web_search` action returns text observations for the next model turn, and
+`visit_url` opens sources in the browser. Search itself leaves the current page
+in place; page reading continues through Fara's existing browser actions.
+The trained tool schema, model endpoint configuration, and starting page are
+preserved. This option is for Fara1.5; Fara-7B continues using browser search.
+
+Use `--search_provider bing` for the default behavior, or
+`--search_provider disabled` to disable the `web_search` action (other browser
+actions remain available). Python callers can set `search_provider` and
+`search_timeout` on `Fara15AgentConfig`. `--search_timeout` sets the total MCP
+request timeout in seconds (default 30). Failures, including free-tier rate
+limits, are returned as observations; they do not switch providers. Cancellation
+closes the request. No Parallel credentials are read from the environment.
+
 ## Reproducibility
 
 Instructions to reproduce our benchmark results (WebVoyager, Online-Mind2Web, WebTailBench) with the `webeval/` framework — including installation, the per-benchmark CLIs, BrowserBase setup, and result analysis — live in [`docs/eval_reproducibility.md`](docs/eval_reproducibility.md).

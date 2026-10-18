@@ -3,6 +3,7 @@ import argparse
 import os
 import uuid
 import logging
+import math
 from typing import Dict
 from pathlib import Path
 import json
@@ -54,9 +55,23 @@ async def run_fara15_agent(
     save_screenshots: bool = True,
     max_rounds: int = 100,
     use_browser_base: bool = False,
+    search_provider: str = "bing",
+    search_timeout: float = 30.0,
 ) -> None:
     """Interactive loop for the Fara-1.5 agent."""
     output_root = Path(output_folder or "./fara_runs")
+
+    agent = Fara15Agent(
+        Fara15AgentConfig(
+            client_config=endpoint_config,
+            max_rounds=max_rounds,
+            identity="fara_qwen35",
+            critical_points="fara-1.5",
+            save_screenshots=save_screenshots,
+            search_provider=search_provider,
+            search_timeout=search_timeout,
+        )
+    )
 
     print("Initializing Browser...")
     env = PlaywrightEnvironment(
@@ -70,16 +85,6 @@ async def run_fara15_agent(
     )
     await env.initialize()
     print("Browser Running... Starting Fara-1.5 Agent...")
-
-    agent = Fara15Agent(
-        Fara15AgentConfig(
-            client_config=endpoint_config,
-            max_rounds=max_rounds,
-            identity="fara_qwen35",
-            critical_points="fara-1.5",
-            save_screenshots=save_screenshots,
-        )
-    )
 
     try:
         task_text = initial_task
@@ -114,9 +119,7 @@ async def run_fara15_agent(
                 print("Running Fara...\n")
                 final_answer, _, _ = await agent.run(run_context)
 
-                while (
-                    run_context.solver_log.status == SolverStatus.WAITING_FOR_USER
-                ):
+                while run_context.solver_log.status == SolverStatus.WAITING_FOR_USER:
                     print(f"\nFara asks: {final_answer}")
                     reply = input("Your response (Enter to abandon): ").strip()
                     if not reply:
@@ -284,7 +287,23 @@ def main():
         help="Run the previous-generation Fara-7B agent instead of Fara-1.5",
     )
 
+    parser.add_argument(
+        "--search_provider",
+        choices=("bing", "parallel", "disabled"),
+        default="bing",
+        help="Fara-1.5 web_search provider (default: browser-based Bing)",
+    )
+    parser.add_argument(
+        "--search_timeout",
+        type=float,
+        default=30.0,
+        help="Timeout in seconds for a Parallel search (default: 30)",
+    )
     args = parser.parse_args()
+    if not math.isfinite(args.search_timeout) or args.search_timeout <= 0:
+        parser.error("--search_timeout must be positive and finite")
+    if args.fara_7b and args.search_provider != "bing":
+        parser.error("--search_provider is supported only by Fara-1.5")
 
     if args.browserbase:
         assert os.environ.get(
@@ -336,6 +355,8 @@ def main():
                 save_screenshots=args.save_screenshots,
                 max_rounds=args.max_rounds,
                 use_browser_base=args.browserbase,
+                search_provider=args.search_provider,
+                search_timeout=args.search_timeout,
             )
         )
 

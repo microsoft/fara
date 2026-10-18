@@ -53,6 +53,7 @@ Issues = "https://github.com/microsoft/fara/issues"
 vllm = ["vllm==0.19.1", "transformers>=5.2.0", "nvidia-cutlass-dsl==4.5.2"]
 lmstudio = ["lmstudio"]
 ollama = ["ollama"]
+search = ["mcp>=1.28.1,<2"]
 
 [project.scripts]
 fara-cli = "fara.run_fara:main"

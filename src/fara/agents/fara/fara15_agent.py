@@ -15,12 +15,14 @@ import json
 import logging
 import re
 import shutil
+import uuid
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Literal, Tuple
 from urllib.parse import quote_plus
 
 import openai
 from PIL import Image
+from pydantic import Field
 from tenacity import (
     retry,
     retry_if_not_exception_type,
@@ -81,6 +83,9 @@ class Fara15AgentConfig(AgentConfig):
         session, which is what triggers the captcha solver).
       raise_on_captcha_timeout: When True, raise on the first captcha-wait
         timeout instead of moving past the unsolved captcha.
+      search_provider: Browser-based ``bing`` (default), opt-in ``parallel``
+        Search MCP, or ``disabled`` to reject the web_search action.
+      search_timeout: Total time allowed for a Parallel MCP request, in seconds.
     """
 
     name: str = "fara_next"
@@ -105,6 +110,8 @@ class Fara15AgentConfig(AgentConfig):
     terminate_on_parse_error: bool = False
     image_token_estimate: int = 1500
     image_budget_token_cap: int = 0
+    search_provider: Literal["bing", "parallel", "disabled"] = "bing"
+    search_timeout: float = Field(default=30.0, gt=0, allow_inf_nan=False)
 
 
 @dataclass
@@ -147,6 +154,7 @@ class Fara15Agent(Agent):
         self._allowed_actions: frozenset[str] = frozenset()
         self._captcha_timeouts: int = 0
         self._captcha_disabled: bool = self.config.captcha_timeout_limit <= 0
+        self._search_session_id = uuid.uuid4().hex
 
     @property
     def mlm_processor_im_cfg(self) -> dict[str, int]:
@@ -168,6 +176,8 @@ class Fara15Agent(Agent):
             mlm_width=self.config.viewport_width,
             mlm_height=self.config.viewport_height,
         )
+        self._pending_observation = ""
+        self._search_session_id = uuid.uuid4().hex
 
         if self.config.client_config is not None:
             self._client = create_client_from_config(self.config.client_config)
@@ -714,7 +724,9 @@ class Fara15Agent(Agent):
             env, action_type, args
         )
 
-        if action_type in self._TEXT_OBSERVATION_ACTIONS:
+        if action_type in self._TEXT_OBSERVATION_ACTIONS or (
+            action_type == "web_search" and self.config.search_provider != "bing"
+        ):
             self._pending_observation = format_text_observation(
                 action_type,
                 action_description,
@@ -806,6 +818,20 @@ class Fara15Agent(Agent):
 
         elif action_type == "web_search":
             query = args.get("query", "")
+            if self.config.search_provider == "disabled":
+                return False, "The web_search action is disabled by configuration."
+            if self.config.search_provider == "parallel":
+                from .search import parallel_search
+
+                try:
+                    result = await parallel_search(
+                        query,
+                        session_id=self._search_session_id,
+                        timeout=self.config.search_timeout,
+                    )
+                except Exception as exc:
+                    return False, f"Parallel search failed: {exc}"
+                return False, result
             await env.goto_url(
                 f"https://www.bing.com/search?q={quote_plus(query)}&FORM=QBLH"
             )
