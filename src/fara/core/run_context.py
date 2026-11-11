@@ -53,6 +53,12 @@ class RunContext:
         output_path = Path(output_dir)
         if output_path.exists() and (output_path / "task.json").exists():
             writer = DataPointWriter.resume(output_path)
+            if writer.data_point.task.task_id != task.task_id:
+                raise ValueError(
+                    "Cannot resume task: checkpoint task_id "
+                    f"{writer.data_point.task.task_id!r} does not match requested "
+                    f"task_id {task.task_id!r}"
+                )
         else:
             writer = DataPointWriter.create(output_path, task, run_id=run_id)
         ctx = cls(
